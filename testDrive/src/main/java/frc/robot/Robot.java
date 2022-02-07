@@ -32,13 +32,23 @@ public class Robot extends TimedRobot {
   private CANSparkMax motorL2 = new CANSparkMax(11, MotorType.kBrushless);
   private CANSparkMax motorR1 = new CANSparkMax(12, MotorType.kBrushless);
   private CANSparkMax motorR2 = new CANSparkMax(13, MotorType.kBrushless);
+  private CANSparkMax inMotor = new CANSparkMax(7, MotorType.kBrushless);
+  private CANSparkMax outMotor = new CANSparkMax(1, MotorType.kBrushless);
+  private CANSparkMax feedMotor = new CANSparkMax(2, MotorType.kBrushless);
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
+
+  //control variables
   private double inputScaling = 1.0;
   private int povState = -1;
-  private double inSpeed;
-  private CANSparkMax inMotor = new CANSparkMax(7, MotorType.kBrushless);
+
+  //configuration variables
+  private double inSpeed = -0.7;
+  private double outSpeed = -0.7;
+  private double feedSpeed = -0.1;
+
+
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -144,16 +154,37 @@ public class Robot extends TimedRobot {
     if(xBox.getYButton())
     {
       //inMotor.set(0.3);
-      inSpeed = -0.7;
+      inMotor.set(inSpeed);
       SmartDashboard.putString("Ybutton", "pushed");
     }
     else
     {
       //inMotor.stopMotor();
-      inSpeed = 0;
+      inMotor.stopMotor();
       SmartDashboard.putString("Ybutton", "not pushed");
     }
-    inMotor.set(inSpeed);
+
+    if(xBox.getRightBumper())
+    {
+      outMotor.set(outSpeed);
+      SmartDashboard.putString("rightBumper", "pushed");
+    }
+    else
+    {
+      outMotor.stopMotor();
+      SmartDashboard.putString("rightBumper", "not pushed");
+    }
+    outMotor.set(outSpeed);
+    if(false || xBox.getAButton())
+    {
+      feedMotor.set(feedSpeed);
+      SmartDashboard.putNumber("feedSpeed", feedSpeed);
+    }
+    else
+    {
+      feedMotor.stopMotor();
+      SmartDashboard.putNumber("feedSpeed", 0);
+    }
   }
 
   /** This function is called once when the robot is disabled. */
