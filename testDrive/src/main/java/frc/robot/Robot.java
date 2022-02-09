@@ -2,6 +2,19 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
+/* TODOs
+* Add reverse to feed mechanism
+* Add reverse to intake mechanism
+* Implement sensor stop to feed mechanism
+* Implement sensor stop to intake mechanism
+* Ultrasonic for shooting range
+* Color sensor output to LED lightstrips
+* change input scaling to 1, 0.7, 0.3 on up, right,down d-pad.
+* LED flash when ball grabbed
+* LED signal when balls full
+* LED team colors
+*/
+
 package frc.robot;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
@@ -35,8 +48,8 @@ public class Robot extends TimedRobot {
   private CANSparkMax motorR1 = new CANSparkMax(12, MotorType.kBrushless);
   private CANSparkMax motorR2 = new CANSparkMax(13, MotorType.kBrushless);
   private CANSparkMax inMotor = new CANSparkMax(7, MotorType.kBrushless);
-  private CANSparkMax outMotor = new CANSparkMax(1, MotorType.kBrushless);
-  private CANSparkMax feedMotor = new CANSparkMax(2, MotorType.kBrushless);
+  private CANSparkMax outMotor = new CANSparkMax(9, MotorType.kBrushless);
+  private CANSparkMax feedMotor = new CANSparkMax(8, MotorType.kBrushless);
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
@@ -49,8 +62,8 @@ public class Robot extends TimedRobot {
 
   //configuration variables
   private double inSpeed = -0.7;
-  private double outSpeed = -0.7;
-  private double feedSpeed = -0.1;
+  private double outSpeed = 0.7;
+  private double feedSpeed = 0.6;
 
 
 
@@ -178,7 +191,7 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
       SmartDashboard.putString("rightBumper", "not pushed");
     }
-    outMotor.set(outSpeed);
+
     if(false || xBox.getAButton())
     {
       feedMotor.set(feedSpeed);
