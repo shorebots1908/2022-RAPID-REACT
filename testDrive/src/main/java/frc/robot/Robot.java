@@ -3,13 +3,13 @@
 // the WPILib BSD license file in the root directory of this project.
 
 /* TODOs
-* Add reverse to feed mechanism
-* Add reverse to intake mechanism
+* Add reverse to feed mechanism -
+* Add reverse to intake mechanism -
 * Implement sensor stop to feed mechanism
 * Implement sensor stop to intake mechanism
 * Ultrasonic for shooting range
 * Color sensor output to LED lightstrips
-* change input scaling to 1, 0.7, 0.3 on up, right,down d-pad.
+* change input scaling to 1, 0.7, 0.3 on up, right,down d-pad. -
 * LED flash when ball grabbed
 * LED signal when balls full
 * LED team colors
@@ -28,7 +28,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.ColorSensorV3;
-
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -36,6 +38,7 @@ import com.revrobotics.ColorSensorV3;
  * project.
  */
 public class Robot extends TimedRobot {
+  private double startTime;
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
@@ -55,7 +58,8 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup rightGroup;
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
   private ColorSensorV3 intakeSensor = new ColorSensorV3(i2cPort);
-
+  private AnalogInput feederSensor = new AnalogInput(0);
+  private AnalogInput distanceSensor = new AnalogInput(1);
   //control variables
   private double inputScaling = 1.0;
   private int povState = -1;
@@ -63,7 +67,7 @@ public class Robot extends TimedRobot {
   //configuration variables
   private double inSpeed = -0.7;
   private double outSpeed = 0.7;
-  private double feedSpeed = 0.6;
+  private double feedSpeed = 0.8;
 
 
 
@@ -79,11 +83,21 @@ public class Robot extends TimedRobot {
     //motorR2.setInverted(true);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
-    leftGroup.setInverted(true);
+    //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    
-    
+    SmartDashboard.putString("aButton", "feedMotor");
+    SmartDashboard.putString("xButton", "reverseMotor");
+    SmartDashboard.putString("yButton", "inMotor");
+    SmartDashboard.putString("bButton", "emergerencyBrake");
+    SmartDashboard.putString("upD-pad", "fullSpeed");
+    SmartDashboard.putString("downD-pad", "slowSpeed");
+    SmartDashboard.putString("rightD-pad", "middleSpeed");
+    SmartDashboard.putString("leftTrigger", "brakeThrottle");
+    SmartDashboard.putString("rightBumper", "shoot");
+    SmartDashboard.putString("Joysticks", "movement Both Forward Goes Forward, Both Backwards Goes Backwards, Forward on left/Backwards on Right goes right, Forward on right/Backwards on left goes left");
+    SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
+    SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
   }
 
   /**
@@ -111,6 +125,8 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+    startTime = Timer.getFPGATimestamp(); // get the match start time
+
 
   }
 
@@ -125,6 +141,18 @@ public class Robot extends TimedRobot {
       default:
         // Put default auto code here
         break;
+    }
+    double timePassed = Timer.getFPGATimestamp() - startTime; 
+    if((timePassed > 0) && (timePassed < 1))
+    {
+      outMotor.set(0.7);
+    } else if((timePassed > 1 ) && (timePassed < 8))
+    {
+      feedMotor.set(0.3);
+    } else 
+    {
+      outMotor.stopMotor();
+      feedMotor.stopMotor();
     }
   }
 
@@ -152,22 +180,20 @@ public class Robot extends TimedRobot {
     {
       povState = xBox.getPOV();
       if(povState == 180) 
-      {
-        if(inputScaling > 0.1) 
-        {
-          inputScaling -= 0.1;
-        }
+      { 
+          inputScaling = 0.3;
       }
       else if(povState == 0)
-      {
-        if(inputScaling < 1.0)
         {
-          inputScaling += 0.1;
+          inputScaling = 1;
         }
-      }
+        else if(povState == 270)
+        { 
+          inputScaling = 0.7;
+        }
     }
-    driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
-    
+        driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
+        
     if(xBox.getYButton())
     {
       //inMotor.set(0.3);
@@ -191,18 +217,34 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
       SmartDashboard.putString("rightBumper", "not pushed");
     }
-
-    if(false || xBox.getAButton())
-    {
-      feedMotor.set(feedSpeed);
-      SmartDashboard.putNumber("feedSpeed", feedSpeed);
-    }
+    
+     if(false || xBox.getAButton())
+        {
+          feedMotor.set(feedSpeed);
+          SmartDashboard.putNumber("feedSpeed", feedSpeed);
+        }
     else
-    {
-      feedMotor.stopMotor();
-      SmartDashboard.putNumber("feedSpeed", 0);
-    }
+        {
+          feedMotor.stopMotor();
+          SmartDashboard.putNumber("feedSpeed", 0);
+        }
+        
+        if(false || xBox.getXButton())
+        {
+          feedMotor.set(-feedSpeed);
+          SmartDashboard.putNumber("feedSpeed", -feedSpeed);
+          inMotor.set(-inSpeed);
+          SmartDashboard.putNumber("inSpeed", -inSpeed);
+        }
+        double voltage_scale_factor = 5/RobotController.getVoltage5V();
+        double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
+        SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
+        /*else
+        {
+          feedMotor.stopMotor();
+         /SmartDashboard.putNumber("feedSpeed", 0); */
   }
+
 
   /** This function is called once when the robot is disabled. */
   @Override
