@@ -61,12 +61,15 @@ public class Robot extends TimedRobot {
   private AnalogInput feederSensor = new AnalogInput(0);
   private AnalogInput distanceSensor = new AnalogInput(1);
   //control variables
-  private double inputScaling = 1.0;
+  private double inputScaling = 0.4;
   private int povState = -1;
-
+  private int speedIndex = 0;
+  private double timePassed;
+  private double feedStart;
   //configuration variables
   private double inSpeed = -0.7;
-  private double outSpeed = 0.7;
+  //private double outSpeed = 0.7;
+  private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
 
 
@@ -86,18 +89,16 @@ public class Robot extends TimedRobot {
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    SmartDashboard.putString("aButton", "feedMotor");
-    SmartDashboard.putString("xButton", "reverseMotor");
-    SmartDashboard.putString("yButton", "inMotor");
+    SmartDashboard.putString("aButton", "run intake motor");
+    SmartDashboard.putString("xButton", "reverse intake motor");
+    SmartDashboard.putString("yButton", "run feed motor");
     SmartDashboard.putString("bButton", "emergerencyBrake");
-    SmartDashboard.putString("upD-pad", "fullSpeed");
-    SmartDashboard.putString("downD-pad", "slowSpeed");
-    SmartDashboard.putString("rightD-pad", "middleSpeed");
-    SmartDashboard.putString("leftTrigger", "brakeThrottle");
+    SmartDashboard.putString("upD-pad", "full speed");
+    SmartDashboard.putString("downD-pad", "slow speed");
+    SmartDashboard.putString("rightD-pad", "middle speed");
+    SmartDashboard.putString("leftTrigger", "brake throttle");
     SmartDashboard.putString("rightBumper", "shoot");
-    SmartDashboard.putString("Joysticks", "movement Both Forward Goes Forward, Both Backwards Goes Backwards, Forward on left/Backwards on Right goes right, Forward on right/Backwards on left goes left");
-    SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
-    SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
+    SmartDashboard.putString("Left stick", "Arcade drive");
   }
 
   /**
@@ -108,7 +109,13 @@ public class Robot extends TimedRobot {
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() 
+  {
+    SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
+    SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
+    SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
+    //TODO: outputcolorsensor
+  }
 
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -142,18 +149,20 @@ public class Robot extends TimedRobot {
         // Put default auto code here
         break;
     }
+    
     double timePassed = Timer.getFPGATimestamp() - startTime; 
     if((timePassed > 0) && (timePassed < 1))
     {
       outMotor.set(0.7);
     } else if((timePassed > 1 ) && (timePassed < 8))
     {
-      feedMotor.set(0.3);
+      feedMotor.set(feedSpeed);
     } else 
     {
       outMotor.stopMotor();
       feedMotor.stopMotor();
     }
+    
   }
 
   /** This function is called once when teleop is enabled. */
@@ -174,22 +183,22 @@ public class Robot extends TimedRobot {
     }
     else 
     {
-      driveRobot.tankDrive((xBox.getLeftY() * inputScaling),(xBox.getRightY() * inputScaling));
+      driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
     }
     if(povState != xBox.getPOV()) 
     {
       povState = xBox.getPOV();
       if(povState == 180) 
       { 
-          inputScaling = 0.3;
+          inputScaling = 0.4;
       }
       else if(povState == 0)
         {
-          inputScaling = 1;
+          inputScaling = 0.8;
         }
         else if(povState == 270)
         { 
-          inputScaling = 0.7;
+          inputScaling = 0.6;
         }
     }
         driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
@@ -206,16 +215,35 @@ public class Robot extends TimedRobot {
       inMotor.stopMotor();
       SmartDashboard.putString("Ybutton", "not pushed");
     }
+    
+    timePassed = Timer.getFPGATimestamp() - startTime; 
+
+    if(xBox.getLeftBumperPressed())
+    {
+      speedIndex++;
+      speedIndex = speedIndex % 6;
+    }
+
+    if(xBox.getRightBumperPressed())
+    {
+      feedStart = Timer.getFPGATimestamp();
+    }
 
     if(xBox.getRightBumper())
     {
-      outMotor.set(outSpeed);
-      SmartDashboard.putString("rightBumper", "pushed");
+      outMotor.set(outSpeeds[speedIndex]);
+      if(Timer.getFPGATimestamp() - feedStart > 0.5)
+      {
+        feedMotor.set(feedSpeed);
+      }
+      else if(!xBox.getXButton() && !xBox.getYButton())
+      {
+        feedMotor.stopMotor();
+      }
     }
     else
     {
       outMotor.stopMotor();
-      SmartDashboard.putString("rightBumper", "not pushed");
     }
     
      if(false || xBox.getAButton())
@@ -223,13 +251,13 @@ public class Robot extends TimedRobot {
           feedMotor.set(feedSpeed);
           SmartDashboard.putNumber("feedSpeed", feedSpeed);
         }
-    else
+    else if(!xBox.getRightBumper())
         {
           feedMotor.stopMotor();
           SmartDashboard.putNumber("feedSpeed", 0);
         }
         
-        if(false || xBox.getXButton())
+        if(false || (xBox.getXButton() && !xBox.getRightBumper()))
         {
           feedMotor.set(-feedSpeed);
           SmartDashboard.putNumber("feedSpeed", -feedSpeed);
