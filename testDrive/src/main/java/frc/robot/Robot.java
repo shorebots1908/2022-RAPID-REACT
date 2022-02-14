@@ -72,12 +72,13 @@ public class Robot extends TimedRobot {
   private double feedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
+  private int backTime = 3; 
   //configuration variables
   private double inSpeed = -0.7;
   //private double outSpeed = 0.7;
   private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
-
+  private boolean aToggleState = true; 
 
 
   /**
@@ -174,6 +175,10 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
       feedMotor.stopMotor();
     }
+    if((timePassed > 1 ) && (timePassed < backTime))
+    {
+      //Robot needs to go backwards
+    }
     
   }
 
@@ -220,20 +225,23 @@ public class Robot extends TimedRobot {
         //Soft brake
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
-    //Input motor settings
-    if(xBox.getAButton())
+    //Intake motor settings
+    if(xBox.getAButtonPressed())
     {
-      //inMotor.set(0.3);
-      inMotor.set(inSpeed);
-      SmartDashboard.putString("Abutton", "pushed");
-    }
-    else
-    {
-      //inMotor.stopMotor();
+
+      if(aToggleState)
+      {
+        inMotor.set(inSpeed);
+        SmartDashboard.putString("Abutton", "pushed");
+        aToggleState = false;
+      }
+      else
+      {
       inMotor.stopMotor();
       SmartDashboard.putString("Abutton", "not pushed");
+        aToggleState = true;
+      }
     }
-    
     //timePassed = Timer.getFPGATimestamp() - startTime; 
 
     //Change shoot motor speed
