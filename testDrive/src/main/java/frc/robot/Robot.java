@@ -64,7 +64,7 @@ public class Robot extends TimedRobot {
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
   private Spark ledStrip = new Spark(0);
-  //control variables
+  //control placeholders variables
   private double inputScaling = 0.4;
   private int povState = -1;
   private int speedIndex = 0;
@@ -95,6 +95,8 @@ public class Robot extends TimedRobot {
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
+
+    //ButtonMap
     SmartDashboard.putString("aButton", "run intake motor");
     SmartDashboard.putString("xButton", "reverse intake motor");
     SmartDashboard.putString("yButton", "run feed motor");
@@ -117,6 +119,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() 
   {
+    //Buttonmap with values that change
     SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
     SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
     SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
@@ -158,6 +161,7 @@ public class Robot extends TimedRobot {
         break;
     }
     
+    //Auto shooter
     double timePassed = Timer.getFPGATimestamp() - startTime; 
     if((timePassed > 0) && (timePassed < 1))
     {
@@ -186,14 +190,17 @@ public class Robot extends TimedRobot {
     double motorSpeed = xBox.getLeftY() * inputScaling;
     SmartDashboard.putNumber("motorSpeed", motorSpeed);
     SmartDashboard.putNumber("inputScaling", inputScaling);
-    if(xBox.getBButton())
+    //emergency brake
+    if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
     }
     else 
+    //drivetrain
     {
       driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
     }
+    //change speed with d-pad
     if(povState != xBox.getPOV()) 
     {
       povState = xBox.getPOV();
@@ -210,9 +217,10 @@ public class Robot extends TimedRobot {
         inputScaling = 0.6;
       }
     }
-        
+        //Soft brake
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
+    //Input motor settings
     if(xBox.getAButton())
     {
       //inMotor.set(0.3);
@@ -228,12 +236,14 @@ public class Robot extends TimedRobot {
     
     //timePassed = Timer.getFPGATimestamp() - startTime; 
 
+    //Change shoot motor speed
     if(xBox.getLeftBumperPressed())
     {
       speedIndex++;
       speedIndex = speedIndex % outSpeeds.length;
     }
 
+    //Fire settings
     if(xBox.getRightBumperPressed())
     {
       feedStart = Timer.getFPGATimestamp();
@@ -256,6 +266,7 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
     }
     
+    //Feed motor settings
     if(xBox.getYButton())
     {
       feedMotor.set(feedSpeed);
@@ -267,6 +278,7 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("feedSpeed", 0);
     }
 
+    //Reverse feed/input motor
     if(xBox.getXButton() && !xBox.getRightBumper() && !xBox.getYButton())
     {
       feedMotor.set(-feedSpeed);
@@ -284,11 +296,13 @@ public class Robot extends TimedRobot {
     {
       reverseDelay = Timer.getFPGATimestamp();
     }
-    
+
+    //Ultrasonic sensor settings
     double voltage_scale_factor = 5/RobotController.getVoltage5V();
     double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
     SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
+    //Infrared senor setting/use
     if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 500 && (Timer.getFPGATimestamp() - reverseDelay > 2))
     {
       feedFlag = true;
