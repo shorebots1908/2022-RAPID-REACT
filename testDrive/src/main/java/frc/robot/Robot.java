@@ -5,8 +5,8 @@
 /* TODOs
 * Add reverse to feed mechanism -
 * Add reverse to intake mechanism -
-* Implement sensor stop to feed mechanism
-* Implement sensor stop to intake mechanism
+* Implement sensor stop to feed mechanism -
+* Implement sensor stop to intake mechanism 
 * Ultrasonic for shooting range
 * Color sensor output to LED lightstrips
 * change input scaling to 1, 0.7, 0.3 on up, right,down d-pad. -
@@ -14,6 +14,9 @@
 * LED signal when balls full
 * LED team colors
 * Add a timer for reverse and sensor activation
+* 3 second feed motor
+* Reverse Motor Toggle Issue
+* Autostop feed motor sensor
 */
 
 package frc.robot;
@@ -109,7 +112,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("rightBumper", "shoot");
     SmartDashboard.putString("Left stick", "Arcade drive");
   }
-
+  
   /**
    * This function is called every robot packet, no matter the mode. Use this for items like
    * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
@@ -125,6 +128,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
     SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
     SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
+    SmartDashboard.setDefaultNumber("InSpeed", inSpeed);
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     //TODO: outputcolorsensor
   }
