@@ -15,8 +15,6 @@
 * LED team colors
 * Add a timer for reverse and sensor activation
 * 3 second feed motor
-* Reverse Motor Toggle Issue
-* Autostop feed motor sensor
 */
 
 package frc.robot;
@@ -75,6 +73,7 @@ public class Robot extends TimedRobot {
   private double feedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
+  private double autoFeedTimeStart;
   private int backTime = 3; 
   //configuration variables
   private double inSpeed = -0.7;
@@ -229,23 +228,38 @@ public class Robot extends TimedRobot {
         //Soft brake
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
-    //Intake motor settings
+    //Intake motor intake toggle
     if(xBox.getAButtonPressed())
     {
 
       if(aToggleState)
       {
-        inMotor.set(inSpeed);
-        SmartDashboard.putString("Abutton", "pushed");
         aToggleState = false;
       }
       else
       {
-      inMotor.stopMotor();
-      SmartDashboard.putString("Abutton", "not pushed");
         aToggleState = true;
       }
     }
+
+    //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
+    if(feederSensor.getValue() < 500 && preFeedSensor.getValue() > 800)
+    {
+      aToggleState = false;
+    }
+
+    //Intake motor speed set
+    if(aToggleState)
+    {
+      inMotor.set(inSpeed);
+      SmartDashboard.putString("Abutton", "pushed");
+    }
+    else
+    {
+      inMotor.stopMotor();
+      SmartDashboard.putString("Abutton", "not pushed");
+    }
+
     //timePassed = Timer.getFPGATimestamp() - startTime; 
 
     //Change shoot motor speed
@@ -302,6 +316,8 @@ public class Robot extends TimedRobot {
     {
       feedMotor.stopMotor();
       SmartDashboard.putNumber("feedSpeed", 0); 
+      inMotor.stopMotor();
+      SmartDashboard.putNumber("inSpeed", 0);
     }
 
     if(xBox.getXButtonReleased())
@@ -317,6 +333,11 @@ public class Robot extends TimedRobot {
     //Infrared senor setting/use
     if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 500 && (Timer.getFPGATimestamp() - reverseDelay > 2))
     {
+      //if the feed motor was just triggered or the lower sensor was triggered, get a new start time for the current autofeedstoptimer.
+      if(!feedFlag || (preFeedSensor.getValue() >= 800))
+      {
+        autoFeedTimeStart = Timer.getFPGATimestamp();
+      }
       feedFlag = true;
     }
 
@@ -329,10 +350,12 @@ public class Robot extends TimedRobot {
       feedMotor.stopMotor();
     }
 
-    if(feederSensor.getValue()>= 500)
+    //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
+    if(feederSensor.getValue()>= 500 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
     {
       feedFlag=false;
     }
+
     
     /*if(!(feederSensor.getValue() >=500) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
     {
