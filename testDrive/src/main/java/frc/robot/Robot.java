@@ -31,6 +31,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.ColorSensorV3;
+
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -89,6 +91,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    CameraServer.startAutomaticCapture();
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -231,19 +234,11 @@ public class Robot extends TimedRobot {
     //Intake motor intake toggle
     if(xBox.getAButtonPressed())
     {
-
-      if(aToggleState)
-      {
-        aToggleState = false;
-      }
-      else
-      {
-        aToggleState = true;
-      }
+      aToggleState = !aToggleState;
     }
 
     //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
-    if(feederSensor.getValue() < 500 && preFeedSensor.getValue() > 800)
+    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 800)
     {
       aToggleState = false;
     }
@@ -254,7 +249,7 @@ public class Robot extends TimedRobot {
       inMotor.set(inSpeed);
       SmartDashboard.putString("Abutton", "pushed");
     }
-    else
+    else if(!xBox.getRightBumper() && !xBox.getXButton())
     {
       inMotor.stopMotor();
       SmartDashboard.putString("Abutton", "not pushed");
@@ -316,8 +311,11 @@ public class Robot extends TimedRobot {
     {
       feedMotor.stopMotor();
       SmartDashboard.putNumber("feedSpeed", 0); 
-      inMotor.stopMotor();
-      SmartDashboard.putNumber("inSpeed", 0);
+      if(!aToggleState)
+      {
+        inMotor.stopMotor();
+        SmartDashboard.putNumber("inSpeed", 0);
+      }
     }
 
     if(xBox.getXButtonReleased())
