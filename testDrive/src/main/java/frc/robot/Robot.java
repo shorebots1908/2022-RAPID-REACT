@@ -180,8 +180,8 @@ public class Robot extends TimedRobot {
     double timePassed = Timer.getFPGATimestamp() - startTime; 
     if((timePassed > 0) && (timePassed < 1))
     {
-      outMotor.set(0.7);
-    } else if((timePassed > 1 ) && (timePassed < 8))
+      outMotor.set(0.5);
+    } else if((timePassed > 1 ) && (timePassed < 3))
     {
       feedMotor.set(feedSpeed);
     } else 
@@ -189,7 +189,20 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
       feedMotor.stopMotor();
     }
-    
+    if((timePassed > 3) && (timePassed < 5))
+    {
+      motorL1.set(-0.3);
+      motorL2.set(-0.3);
+      motorR1.set(0.3);
+      motorR2.set(0.3);
+    }
+      else
+      {
+      motorL1.stopMotor();
+      motorL2.stopMotor();
+      motorR1.stopMotor();
+      motorR2.stopMotor();
+      }
   }
 
   /** This function is called once when teleop is enabled. */
