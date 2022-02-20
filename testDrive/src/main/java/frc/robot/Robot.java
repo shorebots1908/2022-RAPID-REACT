@@ -5,8 +5,8 @@
 /* TODOs
 * Add reverse to feed mechanism -
 * Add reverse to intake mechanism -
-* Implement sensor stop to feed mechanism -
-* Implement sensor stop to intake mechanism 
+* Implement sensor stop to feed mechanism
+* Implement sensor stop to intake mechanism
 * Ultrasonic for shooting range
 * Color sensor output to LED lightstrips
 * change input scaling to 1, 0.7, 0.3 on up, right,down d-pad. -
@@ -14,7 +14,6 @@
 * LED signal when balls full
 * LED team colors
 * Add a timer for reverse and sensor activation
-* 3 second feed motor
 */
 
 package frc.robot;
@@ -31,11 +30,10 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.ColorSensorV3;
-
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Ultrasonic;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -67,7 +65,8 @@ public class Robot extends TimedRobot {
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
   private Spark ledStrip = new Spark(0);
-  //control placeholders variables
+  
+  //control variables
   private double inputScaling = 0.4;
   private int povState = -1;
   private int speedIndex = 0;
@@ -75,23 +74,36 @@ public class Robot extends TimedRobot {
   private double feedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
-  private double autoFeedTimeStart;
-  private int backTime = 3; 
+  private boolean findBall = false, isBallFound = false;
+  private double  ballRange;
   //configuration variables
   private double inSpeed = -0.7;
   //private double outSpeed = 0.7;
   private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
-  private boolean aToggleState = true; 
+  
+  //Custom Functions
+  private double ultraInches(double _raw)
+  {
+    double voltage_scale_factor = 5/RobotController.getVoltage5V();
+    return _raw*voltage_scale_factor*0.0492;
+  }
 
+  private void getBall(){
+    double currentRangeRight = ultraInches(distanceSensor.getValue()); 
+    if()
+    {
 
+    } 
+  }
+  
+  
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
   @Override
   public void robotInit() {
-    CameraServer.startAutomaticCapture();
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -100,9 +112,8 @@ public class Robot extends TimedRobot {
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
+    //TODO: outputcolorsensor
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-
-    //ButtonMap
     SmartDashboard.putString("aButton", "run intake motor");
     SmartDashboard.putString("xButton", "reverse intake motor");
     SmartDashboard.putString("yButton", "run feed motor");
@@ -114,7 +125,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("rightBumper", "shoot");
     SmartDashboard.putString("Left stick", "Arcade drive");
   }
-  
+
   /**
    * This function is called every robot packet, no matter the mode. Use this for items like
    * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
@@ -125,14 +136,11 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() 
   {
-    //Buttonmap with values that change
     SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
-    SmartDashboard.putNumber("distanceSensorValue", distanceSensor.getValue());
+    SmartDashboard.putNumber("distanceSensorValue", ultraInches(distanceSensor.getValue()));
     SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
     SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
-    SmartDashboard.setDefaultNumber("InSpeed", inSpeed);
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
-    //TODO: outputcolorsensor
   }
 
   /**
@@ -168,7 +176,6 @@ public class Robot extends TimedRobot {
         break;
     }
     
-    //Auto shooter
     double timePassed = Timer.getFPGATimestamp() - startTime; 
     if((timePassed > 0) && (timePassed < 1))
     {
@@ -180,10 +187,6 @@ public class Robot extends TimedRobot {
     {
       outMotor.stopMotor();
       feedMotor.stopMotor();
-    }
-    if((timePassed > 1 ) && (timePassed < backTime))
-    {
-      //Robot needs to go backwards
     }
     
   }
@@ -201,17 +204,14 @@ public class Robot extends TimedRobot {
     double motorSpeed = xBox.getLeftY() * inputScaling;
     SmartDashboard.putNumber("motorSpeed", motorSpeed);
     SmartDashboard.putNumber("inputScaling", inputScaling);
-    //emergency brake
-    if(xBox.getLeftTriggerAxis() >= 0.99)
+    if(xBox.getBButton())
     {
       driveRobot.stopMotor();
     }
     else 
-    //drivetrain
     {
       driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
     }
-    //change speed with d-pad
     if(povState != xBox.getPOV()) 
     {
       povState = xBox.getPOV();
@@ -221,50 +221,37 @@ public class Robot extends TimedRobot {
       }
       else if(povState == 0)
       {
-        inputScaling = 0.8;
+        inputScaling = 0.6;
       }
       else if(povState == 270)
       { 
-        inputScaling = 0.6;
+        inputScaling = 0.5;
       }
     }
-        //Soft brake
+        
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
-    //Intake motor intake toggle
-    if(xBox.getAButtonPressed())
+    if(xBox.getAButton())
     {
-      aToggleState = !aToggleState;
-    }
-
-    //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
-    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 800)
-    {
-      aToggleState = false;
-    }
-
-    //Intake motor speed set
-    if(aToggleState)
-    {
+      //inMotor.set(0.3);
       inMotor.set(inSpeed);
       SmartDashboard.putString("Abutton", "pushed");
     }
-    else if(!xBox.getRightBumper() && !xBox.getXButton())
+    else
     {
+      //inMotor.stopMotor();
       inMotor.stopMotor();
       SmartDashboard.putString("Abutton", "not pushed");
     }
-
+    
     //timePassed = Timer.getFPGATimestamp() - startTime; 
 
-    //Change shoot motor speed
     if(xBox.getLeftBumperPressed())
     {
       speedIndex++;
       speedIndex = speedIndex % outSpeeds.length;
     }
 
-    //Fire settings
     if(xBox.getRightBumperPressed())
     {
       feedStart = Timer.getFPGATimestamp();
@@ -287,7 +274,6 @@ public class Robot extends TimedRobot {
       outMotor.stopMotor();
     }
     
-    //Feed motor settings
     if(xBox.getYButton())
     {
       feedMotor.set(feedSpeed);
@@ -299,7 +285,6 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("feedSpeed", 0);
     }
 
-    //Reverse feed/input motor
     if(xBox.getXButton() && !xBox.getRightBumper() && !xBox.getYButton())
     {
       feedMotor.set(-feedSpeed);
@@ -311,31 +296,19 @@ public class Robot extends TimedRobot {
     {
       feedMotor.stopMotor();
       SmartDashboard.putNumber("feedSpeed", 0); 
-      if(!aToggleState)
-      {
-        inMotor.stopMotor();
-        SmartDashboard.putNumber("inSpeed", 0);
-      }
     }
 
     if(xBox.getXButtonReleased())
     {
       reverseDelay = Timer.getFPGATimestamp();
     }
-
-    //Ultrasonic sensor settings
+    
     double voltage_scale_factor = 5/RobotController.getVoltage5V();
     double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
     SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
-    //Infrared senor setting/use
     if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 500 && (Timer.getFPGATimestamp() - reverseDelay > 2))
     {
-      //if the feed motor was just triggered or the lower sensor was triggered, get a new start time for the current autofeedstoptimer.
-      if(!feedFlag || (preFeedSensor.getValue() >= 800))
-      {
-        autoFeedTimeStart = Timer.getFPGATimestamp();
-      }
       feedFlag = true;
     }
 
@@ -348,12 +321,10 @@ public class Robot extends TimedRobot {
       feedMotor.stopMotor();
     }
 
-    //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
-    if(feederSensor.getValue()>= 500 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
+    if(feederSensor.getValue()>= 500)
     {
       feedFlag=false;
     }
-
     
     /*if(!(feederSensor.getValue() >=500) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
     {
