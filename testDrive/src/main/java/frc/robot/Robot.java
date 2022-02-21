@@ -75,7 +75,7 @@ public class Robot extends TimedRobot {
   private double inputScaling = 0.4;
   private int povState = -1;
   private int speedIndex = 0;
-  private boolean aToggleState = false;
+  private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
   private double highFeedStart;
   private double lowFeedStart;
@@ -279,12 +279,20 @@ public class Robot extends TimedRobot {
         
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
+    //Toggle ball finding mode
+    if(xBox.getBButtonPressed())
+    {
+      bToggleState = !bToggleState;
+    }
+
+    
+
     //Intake motor intake toggle
     if(xBox.getAButtonPressed())
     {
       aToggleState = !aToggleState;
     }
-
+    
     //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
     if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 800)
     {
