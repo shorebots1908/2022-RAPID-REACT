@@ -25,6 +25,9 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.XboxController;
+
+import java.util.Map;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -43,8 +46,9 @@ import edu.wpi.first.cameraserver.CameraServer;
  */
 public class Robot extends TimedRobot {
   private double startTime;
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
+  private static final String kDefaultAuto = "2 ball high shooter";
+  private static final String kCustomAuto = "Low goal shooter";
+  private static final String kCustomAuto2 = "High goal shooter";
   private String m_autoSelected;
   private XboxController xBox = new XboxController(0);
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
@@ -66,14 +70,15 @@ public class Robot extends TimedRobot {
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
   private Spark ledStrip = new Spark(0);
-  
+  //auto variable programs
   //control variables
   private double inputScaling = 0.4;
   private int povState = -1;
   private int speedIndex = 0;
   private boolean aToggleState = false;
   private double timePassed;
-  private double feedStart;
+  private double highFeedStart;
+  private double lowFeedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
   private double autoFeedTimeStart;
@@ -85,7 +90,8 @@ public class Robot extends TimedRobot {
   //private double outSpeed = 0.7;
   private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
-  
+  private double highSpeed = 1;
+  private double lowSpeed = 0.5; 
   //Custom Functions
   private double ultraInches(double _raw)
   {
@@ -108,8 +114,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     CameraServer.startAutomaticCapture();
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
+    m_chooser.setDefaultOption("2 ball high shooter Auto", kDefaultAuto);
+    m_chooser.addOption("Low Auto", kCustomAuto);
+    m_chooser.addOption("High Auto", kCustomAuto2);
     SmartDashboard.putData("Auto choices", m_chooser);
     //motorR2.setInverted(true);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
@@ -171,37 +178,66 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
+    switch (m_autoSelected)
+    {
       case kCustomAuto:
-        // Put custom auto code here
+        // Put custom auto code here orrr low ball shooter
+        if((timePassed > 0) && (timePassed < 1))
+        {
+          outMotor.set(0.5);
+        }
+        else if((timePassed > 1 ) && (timePassed < 3))
+        {
+          feedMotor.set(feedSpeed);
+        }
+        else 
+        {
+          outMotor.stopMotor();
+          feedMotor.stopMotor();
+        }
+        if((timePassed > 3) && (timePassed < 5))
+        {
+          driveRobot.arcadeDrive(-0.3, 0);
+        }
+        else
+        {
+          driveRobot.stopMotor();
+        }
         break;
       case kDefaultAuto:
-      default:
-        // Put default auto code here
+        //auto code section 2 orrr 2 high ball shooter code 
         break;
+      case kCustomAuto2:
+        // Put default auto code here orr high ball shooter code 
+        if((timePassed > 0) && (timePassed < 1))
+        {
+          driveRobot.arcadeDrive(-0.3, 0);
+        }
+        else if((timePassed > 1) && (timePassed < 2))
+        {
+          driveRobot.stopMotor();
+          outMotor.set(1);
+        }
+        else if((timePassed > 2) && (timePassed < 3))
+        {
+          feedMotor.set(feedSpeed);
+        }
+        else if((timePassed >  4) && (timePassed < 5))
+        {
+          outMotor.stopMotor();
+          feedMotor.stopMotor();
+          driveRobot.arcadeDrive(-0.3, 0);
+        }
+        else
+        {
+          driveRobot.stopMotor();
+        }
+        break;
+      default:
+      break;
     }
-    
-    
-    if((timePassed > 0) && (timePassed < 1))
-    {
-      outMotor.set(0.5);
-    } else if((timePassed > 1 ) && (timePassed < 3))
-    {
-      feedMotor.set(feedSpeed);
-    } else 
-    {
-      outMotor.stopMotor();
-      feedMotor.stopMotor();
-    }
-    if((timePassed > 3) && (timePassed < 5))
-    {
-      driveRobot.arcadeDrive(-0.3, 0);
-    }
-      else
-      {
-      driveRobot.stopMotor();
-      }
   }
+    
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -271,21 +307,37 @@ public class Robot extends TimedRobot {
     
     //timePassed = Timer.getFPGATimestamp() - startTime; 
 
-    if(xBox.getLeftBumperPressed())
+    /*if(xBox.getLeftBumperPressed())
     {
       speedIndex++;
       speedIndex = speedIndex % outSpeeds.length;
+    }*/
+    if(xBox.getLeftBumperPressed())
+    {
+      lowFeedStart = Timer.getFPGATimestamp();
     }
 
     if(xBox.getRightBumperPressed())
     {
-      feedStart = Timer.getFPGATimestamp();
+      highFeedStart = Timer.getFPGATimestamp();
     }
-
-    if(xBox.getRightBumper())
+    
+    if(xBox.getLeftBumper())
     {
-      outMotor.set(outSpeeds[speedIndex]);
-      if(Timer.getFPGATimestamp() - feedStart > 0.5)
+      outMotor.set(lowSpeed);
+      if(Timer.getFPGATimestamp() - lowFeedStart > 0.5)
+      {
+        feedMotor.set(feedSpeed);
+      }
+      else if(!xBox.getXButton() && !xBox.getYButton())
+      {
+        feedMotor.stopMotor();
+      }
+    }
+    else if(xBox.getRightBumper())
+    {
+      outMotor.set(highSpeed);
+      if(Timer.getFPGATimestamp() - highFeedStart > 0.5)
       {
         feedMotor.set(feedSpeed);
       }
@@ -316,6 +368,7 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("feedSpeed", -feedSpeed);
       inMotor.set(-inSpeed);
       SmartDashboard.putNumber("inSpeed", -inSpeed);
+      aToggleState = false;
     }
     else if(!xBox.getRightBumper() && !xBox.getYButton())
     {
@@ -357,11 +410,10 @@ public class Robot extends TimedRobot {
 
     //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
     if(feederSensor.getValue()>= 500 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
-    if(feederSensor.getValue()>= 500)
     {
       feedFlag=false;
     }
-    
+      //if(feederSensor.getValue()>= 500)
     /*if(!(feederSensor.getValue() >=500) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
     {
       if(preFeedSensor.getValue() >= 800)
@@ -386,7 +438,12 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when test mode is enabled. */
   @Override
-  public void testInit() {}
+  public void testInit() 
+  {
+    m_autoSelected = m_chooser.getSelected();
+    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
+    System.out.println("Auto selected: " + m_autoSelected);
+  }
 
   /** This function is called periodically during test mode. */
   @Override
