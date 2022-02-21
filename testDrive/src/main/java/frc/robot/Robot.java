@@ -142,6 +142,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
     SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
+    timePassed = Timer.getFPGATimestamp() - startTime;
   }
 
   /**
@@ -177,7 +178,7 @@ public class Robot extends TimedRobot {
         break;
     }
     
-    double timePassed = Timer.getFPGATimestamp() - startTime; 
+    
     if((timePassed > 0) && (timePassed < 1))
     {
       outMotor.set(0.5);
@@ -191,17 +192,11 @@ public class Robot extends TimedRobot {
     }
     if((timePassed > 3) && (timePassed < 5))
     {
-      motorL1.set(-0.3);
-      motorL2.set(-0.3);
-      motorR1.set(0.3);
-      motorR2.set(0.3);
+      driveRobot.arcadeDrive(-0.3, 0);
     }
       else
       {
-      motorL1.stopMotor();
-      motorL2.stopMotor();
-      motorR1.stopMotor();
-      motorR2.stopMotor();
+      driveRobot.stopMotor();
       }
   }
 
@@ -218,7 +213,7 @@ public class Robot extends TimedRobot {
     double motorSpeed = xBox.getLeftY() * inputScaling;
     SmartDashboard.putNumber("motorSpeed", motorSpeed);
     SmartDashboard.putNumber("inputScaling", inputScaling);
-    if(xBox.getBButton())
+    if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
     }
@@ -231,7 +226,7 @@ public class Robot extends TimedRobot {
       povState = xBox.getPOV();
       if(povState == 180) 
       { 
-          inputScaling = 0.4;
+        inputScaling = 0.4;
       }
       else if(povState == 0)
       {
