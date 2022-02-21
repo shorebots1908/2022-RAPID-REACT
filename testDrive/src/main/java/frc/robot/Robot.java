@@ -71,10 +71,13 @@ public class Robot extends TimedRobot {
   private double inputScaling = 0.4;
   private int povState = -1;
   private int speedIndex = 0;
+  private boolean aToggleState = false;
   private double timePassed;
   private double feedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
+  private double autoFeedTimeStart;
+  private int backTime = 3;
   private boolean findBall = false, isBallFound = false;
   private double  ballRange;
   //configuration variables
@@ -240,13 +243,26 @@ public class Robot extends TimedRobot {
         
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
-    if(xBox.getAButton())
+    //Intake motor intake toggle
+    if(xBox.getAButtonPressed())
+    {
+      aToggleState = !aToggleState;
+    }
+
+    //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
+    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 800)
+    {
+      aToggleState = false;
+    }
+
+    //Intake motor speed set
+    if(aToggleState)
     {
       //inMotor.set(0.3);
       inMotor.set(inSpeed);
       SmartDashboard.putString("Abutton", "pushed");
     }
-    else
+    else if(!xBox.getRightBumper() && !xBox.getXButton())
     {
       //inMotor.stopMotor();
       inMotor.stopMotor();
@@ -305,6 +321,11 @@ public class Robot extends TimedRobot {
     {
       feedMotor.stopMotor();
       SmartDashboard.putNumber("feedSpeed", 0); 
+      if(!aToggleState)
+      {
+        inMotor.stopMotor();
+        SmartDashboard.putNumber("inSpeed", 0);
+      }
     }
 
     if(xBox.getXButtonReleased())
@@ -318,6 +339,10 @@ public class Robot extends TimedRobot {
     
     if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 500 && (Timer.getFPGATimestamp() - reverseDelay > 2))
     {
+      if(!feedFlag || (preFeedSensor.getValue() >= 800))
+      {
+        autoFeedTimeStart = Timer.getFPGATimestamp();
+      }
       feedFlag = true;
     }
 
@@ -330,6 +355,8 @@ public class Robot extends TimedRobot {
       feedMotor.stopMotor();
     }
 
+    //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
+    if(feederSensor.getValue()>= 500 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
     if(feederSensor.getValue()>= 500)
     {
       feedFlag=false;
