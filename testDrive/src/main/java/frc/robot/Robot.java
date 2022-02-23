@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
   private double autoFeedTimeStart;
   private int backTime = 3;
   private boolean findBall = false, isBallFound = false;
-  private double  ballRange;
+  private double initialRange;
   //configuration variables
   private double inSpeed = -0.7;
   //private double outSpeed = 0.7;
@@ -244,7 +244,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
 
   }
-
+//#endregion
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() 
@@ -255,8 +255,9 @@ public class Robot extends TimedRobot {
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
+      bToggleState = false
     }
-    else 
+    else if(!bToggleState)
     {
       driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
     }
@@ -283,9 +284,23 @@ public class Robot extends TimedRobot {
     if(xBox.getBButtonPressed())
     {
       bToggleState = !bToggleState;
+      initialRange = ultraInches(distanceSensor.getValue());
     }
 
     
+    if(bToggleState)
+    {
+      if(ultraInches(distanceSensor.getValue()) <= initialRange -3)
+      {
+        bToggleState = false;
+        driveRobot.arcadeDrive(0, 0);
+        //TODO: let driver know ball is found.
+      }
+      else
+      {
+        driveRobot.arcadeDrive(0, -.1);
+      }
+    }
 
     //Intake motor intake toggle
     if(xBox.getAButtonPressed())
