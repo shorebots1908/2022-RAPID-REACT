@@ -14,6 +14,10 @@
 * LED signal when balls full
 * LED team colors
 * Add a timer for reverse and sensor activation
+* Gyroscope Code
+* Auto code
+* LED signal when having one ball - flash green once 
+* LED Signal when having one ball - constant flashing green
 */
 
 package frc.robot;
@@ -25,6 +29,8 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 import java.util.Map;
 
@@ -65,11 +71,16 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
-  private ColorSensorV3 intakeSensor = new ColorSensorV3(i2cPort);
+  private ColorSensorV3 ColorSensor = new ColorSensorV3(i2cPort);
   private AnalogInput feederSensor = new AnalogInput(0);
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
+
   private Spark ledStrip = new Spark(0);
+  private double green = 0.71;
+  private double teamColor;
+  private boolean isRedAlliance = false;
+  NetworkTable FMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
   //auto variable programs
   //control variables
   private double inputScaling = 0.4;
@@ -106,6 +117,17 @@ public class Robot extends TimedRobot {
     } 
   }
   
+  public double getTeamColor(){    
+    isRedAlliance = FMS.getEntry("IsRedAlliance").getBoolean(false);
+    if(isRedAlliance)
+    {
+      return 0.61;
+    }
+    else
+    {
+      return 0.87;
+    }    
+  }
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -135,6 +157,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("leftTrigger", "brake throttle");
     SmartDashboard.putString("rightBumper", "shoot");
     SmartDashboard.putString("Left stick", "Arcade drive");
+    ledStrip.set(getTeamColor());
   }
 
   /**
@@ -249,6 +272,15 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() 
   {
+    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 500)
+    {
+      ledStrip.set(green);
+    }
+    else
+    {
+      ledStrip.set(getTeamColor());
+    }
+
     double motorSpeed = xBox.getLeftY() * inputScaling;
     SmartDashboard.putNumber("motorSpeed", motorSpeed);
     SmartDashboard.putNumber("inputScaling", inputScaling);
