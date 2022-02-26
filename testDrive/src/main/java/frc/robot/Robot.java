@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto2 = "High goal shooter";
   private String m_autoSelected;
   private XboxController xBox = new XboxController(0);
+  private Joystick joystick = new Joystick(0);
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   //private Joystick stickL = new Joystick(0);
   //private Joystick stickR = new Joystick(1);
@@ -287,7 +288,7 @@ public class Robot extends TimedRobot {
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
-      bToggleState = false
+      bToggleState = false;
     }
     else if(!bToggleState)
     {
@@ -502,5 +503,11 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic()
+  {
+    SmartDashboard.putNumber("xboxY", xBox.getLeftY());
+    SmartDashboard.putNumber("xboxX", xBox.getLeftX());
+    SmartDashboard.putNumber("joyY", joystick.getX());
+    SmartDashboard.putNumber("joyX", joystick.getY());
+  }
 }
