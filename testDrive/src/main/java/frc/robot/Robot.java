@@ -287,7 +287,7 @@ public class Robot extends TimedRobot {
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
-      bToggleState = false
+      bToggleState = false;
     }
     else if(!bToggleState)
     {
