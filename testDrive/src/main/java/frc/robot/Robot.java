@@ -221,7 +221,7 @@ public class Robot extends TimedRobot {
         }
         if((timePassed > 3) && (timePassed < 5))
         {
-          driveRobot.arcadeDrive(-0.3, 0);
+          driveRobot.arcadeDrive(0, -0.6);
         }
         else
         {
@@ -235,7 +235,7 @@ public class Robot extends TimedRobot {
         // Put default auto code here orr high ball shooter code 
         if((timePassed > 0) && (timePassed < 1))
         {
-          driveRobot.arcadeDrive(-0.3, 0);
+          driveRobot.arcadeDrive(0, -0.3);
         }
         else if((timePassed > 1) && (timePassed < 2))
         {
@@ -250,7 +250,7 @@ public class Robot extends TimedRobot {
         {
           outMotor.stopMotor();
           feedMotor.stopMotor();
-          driveRobot.arcadeDrive(-0.3, 0);
+          driveRobot.arcadeDrive(0, -0.5);
         }
         else
         {
