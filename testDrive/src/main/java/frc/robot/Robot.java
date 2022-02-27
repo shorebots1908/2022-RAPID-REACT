@@ -102,7 +102,7 @@ public class Robot extends TimedRobot {
   private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
   private double highSpeed = 1;
-  private double lowSpeed = 0.5; 
+  private double lowSpeed = 0.55; 
   //Custom Functions
   private double ultraInches(double _raw)
   {
@@ -147,16 +147,17 @@ public class Robot extends TimedRobot {
     //rightGroup.setInverted(true);
     //TODO: outputcolorsensor
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    SmartDashboard.putString("aButton", "run intake motor");
-    SmartDashboard.putString("xButton", "reverse intake motor");
-    SmartDashboard.putString("yButton", "run feed motor");
-    SmartDashboard.putString("bButton", "emergerencyBrake");
-    SmartDashboard.putString("upD-pad", "full speed");
-    SmartDashboard.putString("downD-pad", "slow speed");
-    SmartDashboard.putString("rightD-pad", "middle speed");
-    SmartDashboard.putString("leftTrigger", "brake throttle");
-    SmartDashboard.putString("rightBumper", "shoot");
-    SmartDashboard.putString("Left stick", "Arcade drive");
+    SmartDashboard.putString("a Button", "run intake motor");
+    SmartDashboard.putString("x Button", "reverse intake motor");
+    SmartDashboard.putString("y Button", "run feed motor");
+    //SmartDashboard.putString("bButton", "emergerencyBrake");
+    SmartDashboard.putString("up d-pad", "full speed");
+    SmartDashboard.putString("down d-pad", "slow speed");
+    SmartDashboard.putString("left d-pad", "middle speed");
+    SmartDashboard.putString("left trigger", "brake throttle");
+    SmartDashboard.putString("left bumper", "low shoot");
+    SmartDashboard.putString("right bumper", "high shoot");
+    SmartDashboard.putString("Left stick", "arcade drive");
     ledStrip.set(getTeamColor());
   }
 
@@ -172,7 +173,7 @@ public class Robot extends TimedRobot {
   {
     SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
     SmartDashboard.putNumber("distanceSensorValue", ultraInches(distanceSensor.getValue()));
-    SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
+    //SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
     SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
@@ -272,7 +273,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() 
   {
-    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 500)
+    if(feederSensor.getValue() > 300 && preFeedSensor.getValue() > 500)
     {
       ledStrip.set(green);
     }
@@ -287,9 +288,8 @@ public class Robot extends TimedRobot {
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
-      bToggleState = false;
     }
-    else if(!bToggleState)
+    else
     {
       driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
     }
@@ -302,11 +302,11 @@ public class Robot extends TimedRobot {
       }
       else if(povState == 0)
       {
-        inputScaling = 0.6;
+        inputScaling = 0.7;
       }
       else if(povState == 270)
       { 
-        inputScaling = 0.5;
+        inputScaling = 0.55;
       }
     }
         
@@ -330,18 +330,22 @@ public class Robot extends TimedRobot {
       }
       else
       {
-        driveRobot.arcadeDrive(0, -.1);
+        driveRobot.arcadeDrive(-0.2, 0);
       }
     }
 
     //Intake motor intake toggle
-    if(xBox.getAButtonPressed())
+    if(xBox.getAButton())
     {
-      aToggleState = !aToggleState;
+      aToggleState = true;
+    }
+    else
+    {
+      aToggleState = false;
     }
     
     //Intake motor sensor toggle off if both sensors detect ball as there will be 2 balls.
-    if(feederSensor.getValue() > 500 && preFeedSensor.getValue() > 800)
+    if(feederSensor.getValue() > 300 && preFeedSensor.getValue() > 800)
     {
       aToggleState = false;
     }
@@ -351,13 +355,13 @@ public class Robot extends TimedRobot {
     {
       //inMotor.set(0.3);
       inMotor.set(inSpeed);
-      SmartDashboard.putString("Abutton", "pushed");
+      //SmartDashboard.putString("Abutton", "pushed");
     }
-    else if(!xBox.getRightBumper() && !xBox.getXButton())
+    else if(!xBox.getXButton())
     {
       //inMotor.stopMotor();
       inMotor.stopMotor();
-      SmartDashboard.putString("Abutton", "not pushed");
+      //SmartDashboard.putString("Abutton", "not pushed");
     }
     
     //timePassed = Timer.getFPGATimestamp() - startTime; 
@@ -409,30 +413,30 @@ public class Robot extends TimedRobot {
     if(xBox.getYButton())
     {
       feedMotor.set(feedSpeed);
-      SmartDashboard.putNumber("feedSpeed", feedSpeed);
+      //SmartDashboard.putNumber("feedSpeed", feedSpeed);
     }
     else if(!xBox.getRightBumper() && !xBox.getXButton())
     {
       feedMotor.stopMotor();
-      SmartDashboard.putNumber("feedSpeed", 0);
+      //SmartDashboard.putNumber("feedSpeed", 0);
     }
 
     if(xBox.getXButton() && !xBox.getRightBumper() && !xBox.getYButton())
     {
       feedMotor.set(-feedSpeed);
-      SmartDashboard.putNumber("feedSpeed", -feedSpeed);
+      //SmartDashboard.putNumber("feedSpeed", -feedSpeed);
       inMotor.set(-inSpeed);
-      SmartDashboard.putNumber("inSpeed", -inSpeed);
+      //SmartDashboard.putNumber("inSpeed", -inSpeed);
       aToggleState = false;
     }
-    else if(!xBox.getRightBumper() && !xBox.getYButton())
+    else if(!xBox.getLeftBumper() && !xBox.getRightBumper() && !xBox.getYButton())
     {
       feedMotor.stopMotor();
-      SmartDashboard.putNumber("feedSpeed", 0); 
+      //SmartDashboard.putNumber("feedSpeed", 0); 
       if(!aToggleState)
       {
         inMotor.stopMotor();
-        SmartDashboard.putNumber("inSpeed", 0);
+        //SmartDashboard.putNumber("inSpeed", 0);
       }
     }
 
@@ -445,7 +449,13 @@ public class Robot extends TimedRobot {
     double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
     SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
-    if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 500 && (Timer.getFPGATimestamp() - reverseDelay > 2))
+    //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
+    if(feederSensor.getValue()>= 300 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
+    {
+      feedFlag=false;
+    }
+
+    if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 300 && (Timer.getFPGATimestamp() - reverseDelay > 2) && !xBox.getXButton())
     {
       if(!feedFlag || (preFeedSensor.getValue() >= 800))
       {
@@ -458,24 +468,20 @@ public class Robot extends TimedRobot {
     {
       feedMotor.set(0.3);
     } 
-    else if(!(xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
+    else if(!(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
     {
       feedMotor.stopMotor();
     }
 
-    //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
-    if(feederSensor.getValue()>= 500 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
-    {
-      feedFlag=false;
-    }
-      //if(feederSensor.getValue()>= 500)
-    /*if(!(feederSensor.getValue() >=500) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
+    
+      //if(feederSensor.getValue()>= 300)
+    /*if(!(feederSensor.getValue() >=300) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
     {
       if(preFeedSensor.getValue() >= 800)
       {
         feedMotor.set(0.3);
       }
-      else if((feederSensor.getValue() >=500))
+      else if((feederSensor.getValue() >=300))
       {
         feedMotor.stopMotor();
         

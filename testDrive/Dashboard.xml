@@ -1,0 +1,105 @@
+<xml version="1.0">
+<dashboard>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.CameraServerViewer">
+		<location x="325" y="376"/>
+		<width>394</width>
+		<height>283</height>
+		<property name="Camera Choice" value=""/>
+	</static-widget>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.Image">
+		<location x="202" y="28"/>
+	</static-widget>
+	<widget field="Auto choices" type="String Chooser" class="edu.wpi.first.smartdashboard.gui.elements.Chooser">
+		<location x="18" y="549"/>
+	</widget>
+	<widget field="inSpeed" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="14" y="434"/>
+	</widget>
+	<widget field="Distance Sensor Inches" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="9" y="106"/>
+	</widget>
+	<widget field="inputScaling" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="17" y="255"/>
+	</widget>
+	<widget field="rightD-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="314" y="320"/>
+	</widget>
+	<widget field="Throwing Speed" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="5" y="132"/>
+		<height>19</height>
+	</widget>
+	<widget field="bButton" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="672" y="267"/>
+	</widget>
+	<widget field="ballFeederSensorValue" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="-22" y="89"/>
+	</widget>
+	<widget field="Auto Selector" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="5" y="182"/>
+		<height>19</height>
+	</widget>
+	<widget field="upD-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="323" y="296"/>
+	</widget>
+	<widget field="distanceSensorValue" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="15" y="8"/>
+	</widget>
+	<widget field="xButton" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="537" y="268"/>
+	</widget>
+	<widget field="Left stick" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="333" y="230"/>
+		<width>133</width>
+	</widget>
+	<widget field="motorSpeed" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="11" y="284"/>
+		<width>144</width>
+	</widget>
+	<widget field="rightBumper" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="614" y="183"/>
+	</widget>
+	<widget field="leftTrigger" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="14" y="320"/>
+	</widget>
+	<widget field="yButton" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="600" y="240"/>
+	</widget>
+	<widget field="feedSpeed" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="12" y="379"/>
+	</widget>
+	<widget field="preSensor" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="25" y="51"/>
+	</widget>
+	<widget field="Abutton" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="12" y="406"/>
+	</widget>
+	<widget field="downD-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="308" y="342"/>
+	</widget>
+	<widget field="aButton" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="604" y="296"/>
+	</widget>
+</dashboard>
+<live-window>
+	<widget field="Ungrouped" type="LW Subsystem" class="edu.wpi.first.smartdashboard.livewindow.elements.LWSubsystem">
+		<widget field="AnalogInput[1]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="15"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<widget field="AnalogInput[0]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="34"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<widget field="AnalogInput[2]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="53"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<location x="3" y="1"/>
+		<width>101</width>
+		<height>78</height>
+	</widget>
+</live-window>
+</xml>
