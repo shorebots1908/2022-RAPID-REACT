@@ -39,6 +39,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.ColorSensorV3;
+
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -50,7 +52,11 @@ import edu.wpi.first.cameraserver.CameraServer;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
+import edu.wpi.first.cscore.UsbCamera;
 public class Robot extends TimedRobot {
+  private ADXRS450_Gyro gyro = new ADXRS450_Gyro();
+  private UsbCamera camera1;
+  private UsbCamera camera2;
   private double startTime;
   private static final String kDefaultAuto = "2 ball high shooter";
   private static final String kCustomAuto = "Low goal shooter";
@@ -76,7 +82,7 @@ public class Robot extends TimedRobot {
   private AnalogInput feederSensor = new AnalogInput(0);
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
-
+  private double heading;
   private Spark ledStrip = new Spark(0);
   private double green = 0.71;
   private double teamColor;
@@ -89,8 +95,7 @@ public class Robot extends TimedRobot {
   private int speedIndex = 0;
   private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
-  private double highFeedStart;
-  private double lowFeedStart;
+  private double highFeedStart, lowFeedStart;
   private boolean feedFlag = false;
   private double reverseDelay;
   private double autoFeedTimeStart;
@@ -108,14 +113,7 @@ public class Robot extends TimedRobot {
   private double ultraInches(double _raw)
   {
     double voltage_scale_factor = 5/RobotController.getVoltage5V();
-    return _raw*voltage_scale_factor*0.0492;
-  }
-
-  private void getBall(){
-    double currentRangeRight = ultraInches(distanceSensor.getValue()); 
-    {
-
-    } 
+    return _raw * voltage_scale_factor * 0.0492;
   }
   
   public double getTeamColor(){    
@@ -136,7 +134,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    CameraServer.startAutomaticCapture();
+    gyro.calibrate();
+    camera1 = CameraServer.startAutomaticCapture(0);
+    camera2 = CameraServer.startAutomaticCapture(1);
     m_chooser.setDefaultOption("2 ball high shooter Auto", kDefaultAuto);
     m_chooser.addOption("Low Auto", kCustomAuto);
     m_chooser.addOption("High Auto", kCustomAuto2);
@@ -178,6 +178,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
+    SmartDashboard.putBoolean("Ballfinding", bToggleState);
+    SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
   }
 
   /**
@@ -192,8 +194,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    gyro.reset();
     m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
+    //m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     startTime = Timer.getFPGATimestamp(); // get the match start time
 
@@ -267,7 +270,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-
+    gyro.reset();
   }
 //#endregion
   /** This function is called periodically during operator control. */
@@ -416,13 +419,13 @@ public class Robot extends TimedRobot {
       feedMotor.set(feedSpeed);
       //SmartDashboard.putNumber("feedSpeed", feedSpeed);
     }
-    else if(!xBox.getRightBumper() && !xBox.getXButton())
+    else if(!(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton()))
     {
       feedMotor.stopMotor();
       //SmartDashboard.putNumber("feedSpeed", 0);
     }
 
-    if(xBox.getXButton() && !xBox.getRightBumper() && !xBox.getYButton())
+    if(xBox.getXButton() && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getYButton()))
     {
       feedMotor.set(-feedSpeed);
       //SmartDashboard.putNumber("feedSpeed", -feedSpeed);
@@ -430,7 +433,7 @@ public class Robot extends TimedRobot {
       //SmartDashboard.putNumber("inSpeed", -inSpeed);
       aToggleState = false;
     }
-    else if(!xBox.getLeftBumper() && !xBox.getRightBumper() && !xBox.getYButton())
+    else if(!xBox.getLeftBumper() && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getYButton()))
     {
       feedMotor.stopMotor();
       //SmartDashboard.putNumber("feedSpeed", 0); 
@@ -502,6 +505,8 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() 
   {
+    gyro.reset();
+    heading = gyro.getAngle();
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
@@ -511,6 +516,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic()
   {
+    driveRobot.arcadeDrive((0.6 * ((heading + 90 - gyro.getAngle())/90)) , 0);
     SmartDashboard.putNumber("xboxY", xBox.getLeftY());
     SmartDashboard.putNumber("xboxX", xBox.getLeftX());
     SmartDashboard.putNumber("joyY", joystick.getX());
