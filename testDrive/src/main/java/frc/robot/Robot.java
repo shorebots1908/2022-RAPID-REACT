@@ -95,8 +95,10 @@ public class Robot extends TimedRobot {
   private int speedIndex = 0;
   private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
+  private double driveDuration, driveBackStart, shootTime;
   private double highFeedStart, lowFeedStart;
   private boolean feedFlag = false;
+  private String mode = "Drive Forward";
   private double reverseDelay;
   private double autoFeedTimeStart;
   private int backTime = 3;
@@ -234,6 +236,56 @@ public class Robot extends TimedRobot {
         break;
       case kDefaultAuto:
         //auto code section 2 orrr 2 high ball shooter code 
+        switch(mode)
+        {
+          case "Drive forward":
+            driveRobot.arcadeDrive(0, 0.4);
+            inMotor.set(feedSpeed);
+            if(preFeedSensor.getValue() >= 500)
+            {
+              driveRobot.stopMotor();
+              inMotor.stopMotor();
+              driveDuration = timePassed;
+              mode = "Turn Around";
+            }
+            break;
+          case "Turn Around":
+            driveRobot.arcadeDrive(0.3, 0);
+            if(gyro.getAngle() >= 179)
+            {
+              driveRobot.stopMotor();
+              mode = "Drive Back";
+              driveBackStart = timePassed;
+            }
+          break;
+          case "Drive Back":
+            if(timePassed - driveBackStart <= driveDuration)
+            {
+              driveRobot.arcadeDrive(0, 0.4);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Shoot";
+              shootTime = timePassed;
+            }
+          break;
+          case "Shoot":
+            if(timePassed - shootTime <= 4)
+            {
+              outMotor.set(highSpeed);
+              if(timePassed - shootTime > 0.7)
+              {
+                feedMotor.set(feedSpeed);  
+              }
+            }
+            else
+            {
+              outMotor.stopMotor();
+              feedMotor.stopMotor();
+            }
+          break;
+        }
         break;
       case kCustomAuto2:
         // Put default auto code here orr high ball shooter code 
