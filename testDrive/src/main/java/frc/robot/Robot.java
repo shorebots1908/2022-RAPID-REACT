@@ -21,7 +21,7 @@
 */
 
 package frc.robot;
-import edu.wpi.first.wpilibj.I2C;
+//import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -32,19 +32,17 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
-import java.util.Map;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.revrobotics.ColorSensorV3;
+//import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.Ultrasonic;
+//import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.cameraserver.CameraServer;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -53,6 +51,7 @@ import edu.wpi.first.cameraserver.CameraServer;
  * project.
  */
 import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 public class Robot extends TimedRobot {
   private ADXRS450_Gyro gyro = new ADXRS450_Gyro();
   private UsbCamera camera1;
@@ -77,11 +76,12 @@ public class Robot extends TimedRobot {
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
-  private final I2C.Port i2cPort = I2C.Port.kOnboard;
-  private ColorSensorV3 ColorSensor = new ColorSensorV3(i2cPort);
+  //private final I2C.Port i2cPort = I2C.Port.kOnboard;
+  //private ColorSensorV3 ColorSensor = new ColorSensorV3(i2cPort);
   private AnalogInput feederSensor = new AnalogInput(0);
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
+  private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(0.5);
   private double heading;
   private Spark ledStrip = new Spark(0);
   private double green = 0.71;
@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
   //control variables
   private double inputScaling = 0.4;
   private int povState = -1;
-  private int speedIndex = 0;
+  //private int speedIndex = 0;
   private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
   private double driveDuration, driveBackStart, shootTime;
@@ -101,13 +101,12 @@ public class Robot extends TimedRobot {
   private String mode = "Drive Forward";
   private double reverseDelay;
   private double autoFeedTimeStart;
-  private int backTime = 3;
-  private boolean findBall = false, isBallFound = false;
+  //private int backTime = 3;
+  //private boolean findBall = false, isBallFound = false;
   private double initialRange;
   //configuration variables
   private double inSpeed = -0.7;
-  //private double outSpeed = 0.7;
-  private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  //private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.8;
   private double highSpeed = 1;
   private double lowSpeed = 0.55; 
@@ -130,6 +129,29 @@ public class Robot extends TimedRobot {
     }    
   }
   
+  private void autoFeedRoutine()
+  {
+    if(feederSensor.getValue()>= 300 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
+    {
+      feedFlag=false;
+    }
+
+    if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 300 && (Timer.getFPGATimestamp() - reverseDelay > 2) && !xBox.getXButton())
+    {
+      autoFeedTimeStart = Timer.getFPGATimestamp();
+      feedFlag = true;
+    }
+
+    if(feedFlag && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
+    {
+      feedMotor.set(0.3);
+    } 
+    else if(!feedFlag && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
+    {
+      feedMotor.stopMotor();
+    }
+  }
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -144,11 +166,14 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("High Auto", kCustomAuto2);
     SmartDashboard.putData("Auto choices", m_chooser);
     //motorR2.setInverted(true);
+    motorL1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
-    //TODO: outputcolorsensor
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
     SmartDashboard.putString("a Button", "run intake motor");
     SmartDashboard.putString("x Button", "reverse intake motor");
@@ -208,6 +233,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    autoFeedRoutine();
     switch (m_autoSelected)
     {
       case kCustomAuto:
@@ -238,10 +264,10 @@ public class Robot extends TimedRobot {
         //auto code section 2 orrr 2 high ball shooter code 
         switch(mode)
         {
-          case "Drive forward":
-            driveRobot.arcadeDrive(0, 0.4);
-            inMotor.set(feedSpeed);
-            if(preFeedSensor.getValue() >= 500)
+          case "Drive Forward":
+            driveRobot.arcadeDrive(0, 0.5);
+            inMotor.set(inSpeed);
+            if(preFeedSensor.getValue() >= 800)
             {
               driveRobot.stopMotor();
               inMotor.stopMotor();
@@ -261,7 +287,7 @@ public class Robot extends TimedRobot {
           case "Drive Back":
             if(timePassed - driveBackStart <= driveDuration)
             {
-              driveRobot.arcadeDrive(0, 0.4);
+              driveRobot.arcadeDrive(0, 0.5);
             }
             else
             {
@@ -347,7 +373,7 @@ public class Robot extends TimedRobot {
     }
     else
     {
-      driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),(-xBox.getLeftY() * inputScaling));
+      driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),driveAccLimiter.calculate(-xBox.getLeftY() * inputScaling));
     }
     if(povState != xBox.getPOV()) 
     {
@@ -358,7 +384,7 @@ public class Robot extends TimedRobot {
       }
       else if(povState == 0)
       {
-        inputScaling = 0.7;
+        inputScaling = 0.65;
       }
       else if(povState == 270)
       { 
@@ -506,30 +532,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
     //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
-    if(feederSensor.getValue()>= 300 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
-    {
-      feedFlag=false;
-    }
+    autoFeedRoutine();
 
-    if(preFeedSensor.getValue() >= 800 && feederSensor.getValue() < 300 && (Timer.getFPGATimestamp() - reverseDelay > 2) && !xBox.getXButton())
-    {
-      if(!feedFlag || (preFeedSensor.getValue() >= 800))
-      {
-        autoFeedTimeStart = Timer.getFPGATimestamp();
-      }
-      feedFlag = true;
-    }
-
-    if(feedFlag && !(xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
-    {
-      feedMotor.set(0.3);
-    } 
-    else if(!(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
-    {
-      feedMotor.stopMotor();
-    }
-
-    
       //if(feederSensor.getValue()>= 300)
     /*if(!(feederSensor.getValue() >=300) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
     {
