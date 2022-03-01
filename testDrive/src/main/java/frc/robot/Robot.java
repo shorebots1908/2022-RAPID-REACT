@@ -81,7 +81,7 @@ public class Robot extends TimedRobot {
   private AnalogInput feederSensor = new AnalogInput(0);
   private AnalogInput preFeedSensor = new AnalogInput(1);
   private AnalogInput distanceSensor = new AnalogInput(2);
-  private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(0.5);
+  private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(3);
   private double heading;
   private Spark ledStrip = new Spark(0);
   private double green = 0.71;
@@ -166,10 +166,6 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("High Auto", kCustomAuto2);
     SmartDashboard.putData("Auto choices", m_chooser);
     //motorR2.setInverted(true);
-    motorL1.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
@@ -222,11 +218,15 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     gyro.reset();
+    motorL1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
     m_autoSelected = m_chooser.getSelected();
     //m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     startTime = Timer.getFPGATimestamp(); // get the match start time
-
+    
 
   }
 
@@ -240,7 +240,7 @@ public class Robot extends TimedRobot {
         // Put custom auto code here orrr low ball shooter
         if((timePassed > 0) && (timePassed < 1))
         {
-          outMotor.set(0.5);
+          outMotor.set(0.55);
         }
         else if((timePassed > 1 ) && (timePassed < 3))
         {
@@ -315,20 +315,20 @@ public class Robot extends TimedRobot {
         break;
       case kCustomAuto2:
         // Put default auto code here orr high ball shooter code 
-        if((timePassed > 0) && (timePassed < 1))
+        if((timePassed > 0) && (timePassed < 1.5))
         {
           driveRobot.arcadeDrive(0, -0.3);
         }
-        else if((timePassed > 1) && (timePassed < 2))
+        else if((timePassed > 1.5) && (timePassed < 2.5))
         {
           driveRobot.stopMotor();
           outMotor.set(1);
         }
-        else if((timePassed > 2) && (timePassed < 3))
+        else if((timePassed > 2.5) && (timePassed < 3.5))
         {
           feedMotor.set(feedSpeed);
         }
-        else if((timePassed >  4) && (timePassed < 5))
+        else if((timePassed >  4.5) && (timePassed < 6.5))
         {
           outMotor.stopMotor();
           feedMotor.stopMotor();
@@ -349,6 +349,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     gyro.reset();
+    motorL1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
 //#endregion
   /** This function is called periodically during operator control. */
@@ -395,6 +399,7 @@ public class Robot extends TimedRobot {
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
     //Toggle ball finding mode
+    /*
     if(xBox.getBButtonPressed())
     {
       bToggleState = !bToggleState;
@@ -415,6 +420,7 @@ public class Robot extends TimedRobot {
         driveRobot.arcadeDrive(-0.2, 0);
       }
     }
+    */
 
     //Intake motor intake toggle
     if(xBox.getAButton())
@@ -551,7 +557,13 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit()
+  {
+    motorL1.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    motorL2.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    motorR1.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    motorR2.setIdleMode(CANSparkMax.IdleMode.kCoast);
+  }
 
   /** This function is called periodically when disabled. */
   @Override
