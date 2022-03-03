@@ -171,7 +171,7 @@ public class Robot extends TimedRobot {
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    SmartDashboard.putString("a Button", "run intake motor");
+    /*SmartDashboard.putString("a Button", "run intake motor");
     SmartDashboard.putString("x Button", "reverse intake motor");
     SmartDashboard.putString("y Button", "run feed motor");
     //SmartDashboard.putString("bButton", "emergerencyBrake");
@@ -181,8 +181,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("left trigger", "brake throttle");
     SmartDashboard.putString("left bumper", "low shoot");
     SmartDashboard.putString("right bumper", "high shoot");
-    SmartDashboard.putString("Left stick", "arcade drive");
-    ledStrip.set(getTeamColor());
+ */ ledStrip.set(getTeamColor());
   }
 
   /**
@@ -195,14 +194,14 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() 
   {
-    SmartDashboard.putNumber("ballFeederSensorValue", feederSensor.getValue());
-    SmartDashboard.putNumber("distanceSensorValue", ultraInches(distanceSensor.getValue()));
+    SmartDashboard.putNumber("Ball Sensor", feederSensor.getValue());
+    //SmartDashboard.putNumber("distanceSensorValue", ultraInches(distanceSensor.getValue()));
     //SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
-    SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
+    //SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
-    SmartDashboard.putBoolean("Ballfinding", bToggleState);
-    SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
+    //SmartDashboard.putBoolean("Ballfinding", bToggleState);
+    //SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
   }
 
   /**
@@ -369,8 +368,8 @@ public class Robot extends TimedRobot {
     }
 
     double motorSpeed = xBox.getLeftY() * inputScaling;
-    SmartDashboard.putNumber("motorSpeed", motorSpeed);
-    SmartDashboard.putNumber("inputScaling", inputScaling);
+    //SmartDashboard.putNumber("motorSpeed", motorSpeed);
+    SmartDashboard.putNumber("Speed of Drivetrain", inputScaling);
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
@@ -535,7 +534,7 @@ public class Robot extends TimedRobot {
     
     double voltage_scale_factor = 5/RobotController.getVoltage5V();
     double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
-    SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
+    //SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
     //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
     autoFeedRoutine();
@@ -585,9 +584,10 @@ public class Robot extends TimedRobot {
   public void testPeriodic()
   {
     driveRobot.arcadeDrive((0.6 * ((heading + 90 - gyro.getAngle())/90)) , 0);
-    SmartDashboard.putNumber("xboxY", xBox.getLeftY());
+    /*SmartDashboard.putNumber("xboxY", xBox.getLeftY());
     SmartDashboard.putNumber("xboxX", xBox.getLeftX());
     SmartDashboard.putNumber("joyY", joystick.getX());
     SmartDashboard.putNumber("joyX", joystick.getY());
+    */
   }
 }
