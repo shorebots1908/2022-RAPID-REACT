@@ -1,0 +1,100 @@
+<xml version="1.0">
+<dashboard>
+	<widget field="Distance Sensor Inches" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="40"/>
+	</widget>
+	<widget field="inputScaling" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="20"/>
+	</widget>
+	<widget field="motorSpeed" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="0"/>
+	</widget>
+	<widget field="Auto Selector" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="439" y="37"/>
+	</widget>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.CameraServerViewer">
+		<location x="273" y="28"/>
+		<width>121</width>
+		<height>92</height>
+		<property name="Camera Choice" value="USB Camera 1"/>
+	</static-widget>
+	<widget field="Gyro Values" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="6" y="324"/>
+	</widget>
+	<widget field="Ballfinding" type="Boolean" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="19" y="367"/>
+	</widget>
+	<widget field="right bumper" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="620" y="214"/>
+	</widget>
+	<widget field="left bumper" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="191" y="239"/>
+	</widget>
+	<widget field="left trigger" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="180" y="216"/>
+	</widget>
+	<widget field="left d-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="130" y="281"/>
+	</widget>
+	<widget field="down d-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="198" y="303"/>
+	</widget>
+	<widget field="up d-pad" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="206" y="259"/>
+	</widget>
+	<widget field="y Button" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="588" y="250"/>
+		<height>19</height>
+	</widget>
+	<widget field="x Button" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="534" y="273"/>
+	</widget>
+	<widget field="a Button" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="596" y="291"/>
+	</widget>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.CameraServerViewer">
+		<location x="223" y="358"/>
+		<width>455</width>
+		<height>344</height>
+		<property name="Camera Choice" value=""/>
+	</static-widget>
+	<widget field="Auto choices" type="String Chooser" class="edu.wpi.first.smartdashboard.gui.elements.Chooser">
+		<location x="663" y="1"/>
+	</widget>
+	<widget field="ballFeederSensorValue" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="6" y="172"/>
+	</widget>
+	<widget field="distanceSensorValue" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="495" y="178"/>
+	</widget>
+	<widget field="Left stick" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="375" y="314"/>
+		<width>133</width>
+	</widget>
+	<widget field="preSensor" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="351" y="175"/>
+	</widget>
+</dashboard>
+<live-window>
+<widget field="Ungrouped" type="LW Subsystem" class="edu.wpi.first.smartdashboard.livewindow.elements.LWSubsystem">
+		<widget field="AnalogInput[1]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="15"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<widget field="AnalogInput[0]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="34"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<widget field="AnalogInput[2]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="53"/>
+			<height>19</height>
+			<width>89</width>
+		</widget>
+		<location x="3" y="1"/>
+		<width>101</width>
+		<height>78</height>
+	</widget>
+</live-window>
+</xml>
