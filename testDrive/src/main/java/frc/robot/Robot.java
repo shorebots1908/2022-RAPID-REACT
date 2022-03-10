@@ -157,7 +157,8 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   @Override
-  public void robotInit() {
+  public void robotInit() 
+  {
     gyro.calibrate();
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
@@ -182,6 +183,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("left bumper", "low shoot");
     SmartDashboard.putString("right bumper", "high shoot");
  */ ledStrip.set(getTeamColor());
+    outMotor.enableVoltageCompensation(12.0);
   }
 
   /**
