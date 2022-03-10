@@ -158,6 +158,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("rightBumper", "shoot");
     SmartDashboard.putString("Left stick", "Arcade drive");
     ledStrip.set(getTeamColor());
+    outMotor.enableVoltageCompensation(12.0);
   }
 
   /**
