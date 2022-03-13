@@ -57,9 +57,14 @@ public class Robot extends TimedRobot {
   private UsbCamera camera1;
   private UsbCamera camera2;
   private double startTime;
-  private static final String kDefaultAuto = "2 ball high shooter";
+  private static final String kDefaultAuto = "2 ball high shooter #2 (middle)";
   private static final String kCustomAuto = "Low goal shooter";
   private static final String kCustomAuto2 = "High goal shooter";
+  private static final String kCustomAuto3 = "2 ball high shooter #3 (wall)";
+  private static final String kCustomAuto4 = "2 ball high shooter #1 (left)";
+  private static final String kCustomAuto5 = "2 ball low shooter #1 (left)";
+  private static final String kCustomAuto6 = "2 ball low shooter #2 (middle)";
+  
   private String m_autoSelected;
   private XboxController xBox = new XboxController(0);
   private Joystick joystick = new Joystick(0);
@@ -78,14 +83,14 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup rightGroup;
   //private final I2C.Port i2cPort = I2C.Port.kOnboard;
   //private ColorSensorV3 ColorSensor = new ColorSensorV3(i2cPort);
-  private AnalogInput feederSensor = new AnalogInput(0);
-  private AnalogInput preFeedSensor = new AnalogInput(1);
-  private AnalogInput distanceSensor = new AnalogInput(2);
+  private AnalogInput feederSensor = new AnalogInput(2);
+  private AnalogInput preFeedSensor = new AnalogInput(3);
+//   private AnalogInput distanceSensor = new AnalogInput(2);
   private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(3);
   private double heading;
   private Spark ledStrip = new Spark(0);
   private double green = 0.71;
-  private double teamColor;
+  //private double teamColor;
   private boolean isRedAlliance = false;
   NetworkTable FMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
   //auto variable programs
@@ -93,30 +98,32 @@ public class Robot extends TimedRobot {
   private double inputScaling = 0.4;
   private int povState = -1;
   //private int speedIndex = 0;
-  private boolean aToggleState = false, bToggleState = false;
+  private boolean aToggleState = false;
   private double timePassed;
   private double driveDuration, driveBackStart, shootTime;
   private double highFeedStart, lowFeedStart;
   private boolean feedFlag = false;
-  private String mode = "Drive Forward";
+  private String mode;
   private double reverseDelay;
   private double autoFeedTimeStart;
   //private int backTime = 3;
   //private boolean findBall = false, isBallFound = false;
-  private double initialRange;
+  //private double initialRange;
   //configuration variables
   private double inSpeed = -0.7;
   //private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-  private double feedSpeed = 0.8;
-  private double highSpeed = 1;
-  private double lowSpeed = 0.55; 
+  private double feedSpeed = 0.6;
+  private double highSpeed = 0.9;
+  private double lowSpeed = 0.45; 
   //Custom Functions
+  /*
   private double ultraInches(double _raw)
   {
     double voltage_scale_factor = 5/RobotController.getVoltage5V();
     return _raw * voltage_scale_factor * 0.0492;
   }
-  
+  */
+
   public double getTeamColor(){    
     isRedAlliance = FMS.getEntry("IsRedAlliance").getBoolean(false);
     if(isRedAlliance)
@@ -128,7 +135,7 @@ public class Robot extends TimedRobot {
       return 0.87;
     }    
   }
-  
+
   private void autoFeedRoutine()
   {
     if(feederSensor.getValue()>= 300 || (preFeedSensor.getValue() < 800 && (Timer.getFPGATimestamp() - autoFeedTimeStart) >= 3))
@@ -162,9 +169,13 @@ public class Robot extends TimedRobot {
     gyro.calibrate();
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
-    m_chooser.setDefaultOption("2 ball high shooter Auto", kDefaultAuto);
+    m_chooser.setDefaultOption("2 ball high shooter Ball 2 (middle)", kDefaultAuto);
     m_chooser.addOption("Low Auto", kCustomAuto);
     m_chooser.addOption("High Auto", kCustomAuto2);
+    m_chooser.addOption("2 ball high shooter Ball 3 (wall)", kCustomAuto3);
+    m_chooser.addOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
+    m_chooser.addOption("2 ball low shooter 2 (middle)", kCustomAuto6);
+    m_chooser.addOption("2 ball low shooter 1 (left)", kCustomAuto5);
     SmartDashboard.putData("Auto choices", m_chooser);
     //motorR2.setInverted(true);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
@@ -203,9 +214,8 @@ public class Robot extends TimedRobot {
     //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
     //SmartDashboard.putBoolean("Ballfinding", bToggleState);
-    //SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
+    SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
   }
-
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
    * autonomous modes using the dashboard. The sendable chooser code works with the Java
@@ -227,7 +237,7 @@ public class Robot extends TimedRobot {
     //m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     startTime = Timer.getFPGATimestamp(); // get the match start time
-    
+    mode = "Drive Forward";
 
   }
 
@@ -262,7 +272,7 @@ public class Robot extends TimedRobot {
         }
         break;
       case kDefaultAuto:
-        //auto code section 2 orrr 2 high ball shooter code 
+        //auto code section 2 orrr 2 high middle ball shooter code  
         switch(mode)
         {
           case "Drive Forward":
@@ -277,18 +287,107 @@ public class Robot extends TimedRobot {
             }
             break;
           case "Turn Around":
-            driveRobot.arcadeDrive(0.3, 0);
-            if(gyro.getAngle() >= 179)
+            driveRobot.arcadeDrive(0.4, 0);
+            if(gyro.getAngle() >= 159)
             {
               driveRobot.stopMotor();
               mode = "Drive Back";
               driveBackStart = timePassed;
             }
+            break;
+          case "Drive Back":
+            if(timePassed - driveBackStart + 0.3 <= driveDuration)
+            {
+              driveRobot.arcadeDrive(0, 0.45);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Shoot";
+              shootTime = timePassed;
+            }
+            break;
+          case "Shoot":
+            if(timePassed - shootTime <= 4)
+            {
+              outMotor.set(highSpeed);
+              if(timePassed - shootTime > 1.3)
+              {
+                feedMotor.set(feedSpeed);  
+              }
+            }
+            else
+            {
+              outMotor.stopMotor();
+              feedMotor.stopMotor();
+            }
+            break;
+        }
+        break;
+      case kCustomAuto2:
+        // Put default auto code here orr high ball shooter code 
+        if((timePassed > 0) && (timePassed < 1.5))
+        {
+          driveRobot.arcadeDrive(0, -0.3);
+        }
+        else if((timePassed > 1.5) && (timePassed < 2.5))
+        {
+          driveRobot.stopMotor();
+          outMotor.set(highSpeed);
+        }
+        else if((timePassed > 2.5) && (timePassed < 3.5))
+        {
+          feedMotor.set(feedSpeed);
+        }
+        else if((timePassed >  4.5) && (timePassed < 5.9))
+        {
+          outMotor.stopMotor();
+          feedMotor.stopMotor();
+          driveRobot.arcadeDrive(0, -0.5);
+        }
+        else
+        {
+          driveRobot.stopMotor();
+        }
+        break;
+      case kCustomAuto3:
+      //auto code section 2 orrr 2 high ball shooter code ball 3 (Wall) 
+        switch(mode)
+        {
+          case "Drive Forward":
+            driveRobot.arcadeDrive(0, 0.3);
+            inMotor.set(inSpeed);
+            if(preFeedSensor.getValue() >= 800)
+            {
+              driveRobot.stopMotor();
+              inMotor.stopMotor();
+              driveDuration = timePassed;
+              mode = "Turn Around";
+            }
+            break;
+          case "Turn Around":
+          if(gyro.getAngle() <= 130)
+          {
+            driveRobot.arcadeDrive(0.5, 0);
+            inMotor.set(inSpeed);
+          }
+          else if(gyro.getAngle() <= 184)
+          {
+            driveRobot.arcadeDrive(0.3, 0);
+            inMotor.set(inSpeed);
+          }
+          else
+          {
+            driveRobot.stopMotor();
+            mode = "Drive Back";
+            driveBackStart = timePassed;
+          }
           break;
           case "Drive Back":
+            inMotor.set(inSpeed);
             if(timePassed - driveBackStart <= driveDuration)
             {
-              driveRobot.arcadeDrive(0, 0.5);
+              driveRobot.arcadeDrive(0, 0.3);
             }
             else
             {
@@ -300,8 +399,138 @@ public class Robot extends TimedRobot {
           case "Shoot":
             if(timePassed - shootTime <= 4)
             {
+              inMotor.set(inSpeed);
               outMotor.set(highSpeed);
-              if(timePassed - shootTime > 0.7)
+              if(timePassed - shootTime > 1.3)
+              {
+                feedMotor.set(feedSpeed);  
+              }
+            }
+            else
+            {
+              outMotor.stopMotor();
+              feedMotor.stopMotor();
+              inMotor.stopMotor();
+            }
+          break;
+        }
+        break;
+      case kCustomAuto4:
+      //auto code section 2 orrr 2 high ball shooter code ball 1 (left) 
+        switch(mode)
+        {
+          case "Drive Forward":
+            if(gyro.getAngle() >= -5)
+            {
+              driveRobot.arcadeDrive(-0.3, 0);
+            }
+            else
+            {
+              driveRobot.arcadeDrive(0, 0.5);
+              inMotor.set(inSpeed);
+              if(preFeedSensor.getValue() >= 800)
+              {
+                driveRobot.stopMotor();
+                inMotor.stopMotor();
+                driveDuration = timePassed;
+                mode = "Turn Around";
+                gyro.reset();
+              }
+            }
+            break;
+          case "Turn Around":
+            if(gyro.getAngle() < 130)
+            {
+              driveRobot.arcadeDrive(0.4, 0);
+            }
+            else if(gyro.getAngle() <= 167)
+            {
+              driveRobot.arcadeDrive(0.3, 0);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Drive Back";
+              driveBackStart = timePassed;
+            }
+            break;
+          case "Drive Back":
+            if(timePassed - driveBackStart + 0.3 <= driveDuration)
+            {
+              driveRobot.arcadeDrive(0, 0.45);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Shoot";
+              shootTime = timePassed;
+            }
+            break;
+          case "Shoot":
+            if(timePassed - shootTime <= 4)
+            {
+              outMotor.set(highSpeed);
+              if(timePassed - shootTime > 1.3)
+              {
+                feedMotor.set(feedSpeed);  
+              }
+            }
+            else
+            {
+              outMotor.stopMotor();
+              feedMotor.stopMotor();
+            }
+            break;
+        }
+        break;
+      case kCustomAuto5:
+        //2 ball low shooter 1 left 
+        switch(mode)
+        {
+          case "Drive Forward":
+            driveRobot.arcadeDrive(0, 0.5);
+            inMotor.set(inSpeed);
+            if(preFeedSensor.getValue() >= 800)
+            {
+              driveRobot.stopMotor();
+              inMotor.stopMotor();
+              driveDuration = timePassed;
+              mode = "Turn Around";
+            }
+            break;
+          case "Turn Around":
+            if(gyro.getAngle() <= 130)
+            {
+              driveRobot.arcadeDrive(0.4, 0);
+            }
+            else if(gyro.getAngle() <= 166)
+            {
+              driveRobot.arcadeDrive(0.3, 0);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Drive Back";
+              driveBackStart = timePassed;
+            }
+          break;
+          case "Drive Back":
+            if(timePassed - driveBackStart - 0.1 <= driveDuration)
+            {
+              driveRobot.arcadeDrive(0, 0.45);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Shoot";
+              shootTime = timePassed;
+            }
+          break;
+          case "Shoot":
+            if(timePassed - shootTime <= 4)
+            {
+              outMotor.set(0.5);
+              if(timePassed - shootTime > 1.3)
               {
                 feedMotor.set(feedSpeed);  
               }
@@ -314,34 +543,76 @@ public class Robot extends TimedRobot {
           break;
         }
         break;
-      case kCustomAuto2:
-        // Put default auto code here orr high ball shooter code 
-        if((timePassed > 0) && (timePassed < 1.5))
+      case kCustomAuto6:
+        // 2 ball low shooter for #2 middle
+        switch(mode)
         {
-          driveRobot.arcadeDrive(0, -0.3);
-        }
-        else if((timePassed > 1.5) && (timePassed < 2.5))
-        {
-          driveRobot.stopMotor();
-          outMotor.set(1);
-        }
-        else if((timePassed > 2.5) && (timePassed < 3.5))
-        {
-          feedMotor.set(feedSpeed);
-        }
-        else if((timePassed >  4.5) && (timePassed < 6.5))
-        {
-          outMotor.stopMotor();
-          feedMotor.stopMotor();
-          driveRobot.arcadeDrive(0, -0.5);
-        }
-        else
-        {
-          driveRobot.stopMotor();
+          case "Drive Forward":
+            driveRobot.arcadeDrive(0, 0.5);
+            inMotor.set(inSpeed);
+            if(preFeedSensor.getValue() >= 800)
+            {
+              driveRobot.stopMotor();
+              inMotor.stopMotor();
+              driveDuration = timePassed;
+              mode = "Turn Around";
+            }
+            break;
+          case "Turn Around":
+            if(gyro.getAngle() <= 130)
+            {
+              driveRobot.arcadeDrive(0.4, 0);
+            }
+            else if(gyro.getAngle() <= 176)
+            {
+              driveRobot.arcadeDrive(0.3, 0);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Drive Back";
+              driveBackStart = timePassed;
+            }
+            break;
+          case "Drive Back":
+            if(timePassed - driveBackStart - 0.1 <= driveDuration)
+            {
+              driveRobot.arcadeDrive(0, 0.45);
+            }
+            else
+            {
+              driveRobot.stopMotor();
+              mode = "Shoot";
+              gyro.reset();
+            }
+            break;
+          case "Shoot":
+            if(gyro.getAngle() >= -10)
+            {
+              driveRobot.arcadeDrive(-0.3, 0);
+              shootTime = timePassed;
+            }
+            else
+            {
+              if(timePassed - shootTime <= 4)
+              {
+                outMotor.set(0.5);
+                if(timePassed - shootTime > 1.3)
+                {
+                  feedMotor.set(feedSpeed);  
+                }
+              }
+              else
+              {
+                outMotor.stopMotor();
+                feedMotor.stopMotor();
+              }
+            }
+            break;
         }
         break;
       default:
-      break;
+        break;
     }
   }
     
@@ -414,7 +685,6 @@ public class Robot extends TimedRobot {
       {
         bToggleState = false;
         driveRobot.arcadeDrive(0, 0);
-        //TODO: let driver know ball is found.
       }
       else
       {
@@ -485,7 +755,7 @@ public class Robot extends TimedRobot {
     else if(xBox.getRightBumper())
     {
       outMotor.set(highSpeed);
-      if(Timer.getFPGATimestamp() - highFeedStart > 0.5)
+      if(Timer.getFPGATimestamp() - highFeedStart > 1)
       {
         feedMotor.set(feedSpeed);
       }
@@ -534,8 +804,8 @@ public class Robot extends TimedRobot {
       reverseDelay = Timer.getFPGATimestamp();
     }
     
-    double voltage_scale_factor = 5/RobotController.getVoltage5V();
-    double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
+    // double voltage_scale_factor = 5/RobotController.getVoltage5V();
+    // double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
     //SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
     
     //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
