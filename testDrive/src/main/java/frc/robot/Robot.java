@@ -355,23 +355,24 @@ public class Robot extends TimedRobot {
         switch(mode)
         {
           case "Drive Forward":
-            driveRobot.arcadeDrive(0, 0.3);
+            driveRobot.arcadeDrive(0, 0.35);
             inMotor.set(inSpeed);
             if(preFeedSensor.getValue() >= 800)
             {
               driveRobot.stopMotor();
               inMotor.stopMotor();
               driveDuration = timePassed;
+              gyro.reset();
               mode = "Turn Around";
             }
             break;
           case "Turn Around":
           if(gyro.getAngle() <= 130)
           {
-            driveRobot.arcadeDrive(0.5, 0);
+            driveRobot.arcadeDrive(0.45, 0);
             inMotor.set(inSpeed);
           }
-          else if(gyro.getAngle() <= 184)
+          else if(gyro.getAngle() <= 181)
           {
             driveRobot.arcadeDrive(0.3, 0);
             inMotor.set(inSpeed);
@@ -385,9 +386,9 @@ public class Robot extends TimedRobot {
           break;
           case "Drive Back":
             inMotor.set(inSpeed);
-            if(timePassed - driveBackStart <= driveDuration)
+            if(timePassed - driveBackStart + 1 <= driveDuration)
             {
-              driveRobot.arcadeDrive(0, 0.3);
+              driveRobot.arcadeDrive(0, 0.35);
             }
             else
             {
