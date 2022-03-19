@@ -326,16 +326,16 @@ public class Robot extends TimedRobot {
         break;
       case kCustomAuto2:
         // Put default auto code here orr high ball shooter code 
-        if((timePassed > 0) && (timePassed < 1.5))
+        if((timePassed > 0) && (timePassed < 1.7))
         {
           driveRobot.arcadeDrive(0, -0.3);
         }
-        else if((timePassed > 1.5) && (timePassed < 2.5))
+        else if((timePassed > 1.7) && (timePassed < 2.7))
         {
           driveRobot.stopMotor();
           outMotor.set(highSpeed);
         }
-        else if((timePassed > 2.5) && (timePassed < 3.5))
+        else if((timePassed > 2.7) && (timePassed < 3.7))
         {
           feedMotor.set(feedSpeed);
         }
@@ -576,7 +576,7 @@ public class Robot extends TimedRobot {
             }
             break;
           case "Drive Back":
-            if(timePassed - driveBackStart - 0.1 <= driveDuration)
+            if(timePassed - driveBackStart - 0.4 <= driveDuration)
             {
               driveRobot.arcadeDrive(0, 0.45);
             }
