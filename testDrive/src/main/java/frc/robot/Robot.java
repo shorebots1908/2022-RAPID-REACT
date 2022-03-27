@@ -32,7 +32,11 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+import javax.management.relation.Relation;
+
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxRelativeEncoder;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -64,10 +68,10 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto4 = "2 ball high shooter #1 (left)";
   private static final String kCustomAuto5 = "2 ball low shooter #1 (left)";
   private static final String kCustomAuto6 = "2 ball low shooter #2 (middle)";
-  
   private String m_autoSelected;
   private XboxController xBox = new XboxController(0);
   private Joystick joystick = new Joystick(0);
+  //private final SendableChooser<String> reelChooser = new SendableChooser<>();
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   //private Joystick stickL = new Joystick(0);
   //private Joystick stickR = new Joystick(1);
@@ -78,6 +82,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax inMotor = new CANSparkMax(7, MotorType.kBrushless);
   private CANSparkMax outMotor = new CANSparkMax(9, MotorType.kBrushless);
   private CANSparkMax feedMotor = new CANSparkMax(8, MotorType.kBrushless);
+  private CANSparkMax reelMotor = new CANSparkMax(6, MotorType.kBrushless);
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
@@ -98,7 +103,7 @@ public class Robot extends TimedRobot {
   private double inputScaling = 0.4;
   private int povState = -1;
   //private int speedIndex = 0;
-  private boolean aToggleState = false;
+  private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
   private double driveDuration, driveBackStart, shootTime;
   private double highFeedStart, lowFeedStart;
@@ -159,6 +164,27 @@ public class Robot extends TimedRobot {
     }
   }
 
+  private void intakeReel()
+  {
+    double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 12.0);
+    if(bToggleState && reelMotor.getEncoder().getPosition() < reelRevs)
+    {
+      reelMotor.set(0.3);
+    }
+    else if(bToggleState && reelMotor.getEncoder().getPosition() >= reelRevs)
+    {
+      reelMotor.stopMotor();
+    }
+    else if(!bToggleState && reelMotor.getEncoder().getPosition() > 0)
+    {
+      reelMotor.set(-0.3);
+    }
+    else if(!bToggleState && reelMotor.getEncoder().getPosition() <= 0)
+    {
+      reelMotor.stopMotor();
+    }
+  }
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -169,6 +195,7 @@ public class Robot extends TimedRobot {
     gyro.calibrate();
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
+    SmartDashboard.putNumber("Reel Revolutions", 12.0);
     m_chooser.setDefaultOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
     m_chooser.addOption("2 ball low shooter 1 (left)", kCustomAuto5);
     m_chooser.addOption("2 ball high shooter Ball 2 (middle)", kDefaultAuto);
@@ -215,6 +242,7 @@ public class Robot extends TimedRobot {
     timePassed = Timer.getFPGATimestamp() - startTime;
     //SmartDashboard.putBoolean("Ballfinding", bToggleState);
     SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
+    SmartDashboard.putNumber("Reel Motor Revs", reelMotor.getEncoder().getPosition());
   }
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -233,18 +261,21 @@ public class Robot extends TimedRobot {
     motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
     motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
     motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    reelMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     m_autoSelected = m_chooser.getSelected();
     //m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     startTime = Timer.getFPGATimestamp(); // get the match start time
     mode = "Drive Forward";
-
+    bToggleState = false;
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 12.0));
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
     autoFeedRoutine();
+    intakeReel();
     switch (m_autoSelected)
     {
       case kCustomAuto:
@@ -626,12 +657,19 @@ public class Robot extends TimedRobot {
     motorL2.setIdleMode(CANSparkMax.IdleMode.kBrake);
     motorR1.setIdleMode(CANSparkMax.IdleMode.kBrake);
     motorR2.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    reelMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+
   }
 //#endregion
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() 
   {
+    if(xBox.getBButtonPressed())
+    {
+      bToggleState = !bToggleState;
+    }
+    intakeReel();
     if(feederSensor.getValue() > 300 && preFeedSensor.getValue() > 500)
     {
       ledStrip.set(green);
@@ -666,6 +704,10 @@ public class Robot extends TimedRobot {
       else if(povState == 270)
       { 
         inputScaling = 0.55;
+      }
+      else if(povState == 90)
+      {
+        inputScaling = 1.0;
       }
     }
         
@@ -835,6 +877,7 @@ public class Robot extends TimedRobot {
     motorL2.setIdleMode(CANSparkMax.IdleMode.kCoast);
     motorR1.setIdleMode(CANSparkMax.IdleMode.kCoast);
     motorR2.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    reelMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
   }
 
   /** This function is called periodically when disabled. */
@@ -845,22 +888,21 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() 
   {
-    gyro.reset();
-    heading = gyro.getAngle();
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+    reelMotor.setIdleMode(IdleMode.kBrake);
+    reelMotor.enableVoltageCompensation(6.0);
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 12.0));
+    bToggleState = false;
   }
 
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic()
   {
-    driveRobot.arcadeDrive((0.6 * ((heading + 90 - gyro.getAngle())/90)) , 0);
-    /*SmartDashboard.putNumber("xboxY", xBox.getLeftY());
-    SmartDashboard.putNumber("xboxX", xBox.getLeftX());
-    SmartDashboard.putNumber("joyY", joystick.getX());
-    SmartDashboard.putNumber("joyX", joystick.getY());
-    */
+    SmartDashboard.putNumber("Reel Motor Revs", reelMotor.getEncoder().getPosition());
+    if(xBox.getBButtonPressed())
+    {
+      bToggleState = !bToggleState;
+    }
+    intakeReel();
   }
 }
