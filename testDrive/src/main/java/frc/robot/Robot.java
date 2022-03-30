@@ -166,20 +166,29 @@ public class Robot extends TimedRobot {
 
   private void intakeReel()
   {
-    double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 12.0);
-    if(bToggleState && reelMotor.getEncoder().getPosition() < reelRevs)
+    double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 8.0);
+    double reelPosition = reelMotor.getEncoder().getPosition();
+    if(bToggleState && reelPosition < 0.75 * reelRevs)
     {
       reelMotor.set(0.3);
     }
-    else if(bToggleState && reelMotor.getEncoder().getPosition() >= reelRevs)
+    else if(bToggleState && reelPosition < reelRevs)
+    {
+      reelMotor.set(0.2);
+    }
+    else if(bToggleState)
     {
       reelMotor.stopMotor();
     }
-    else if(!bToggleState && reelMotor.getEncoder().getPosition() > 0)
+    else if(!bToggleState && reelPosition > 0.25 * reelRevs)
     {
       reelMotor.set(-0.3);
     }
-    else if(!bToggleState && reelMotor.getEncoder().getPosition() <= 0)
+    else if(!bToggleState && reelPosition > 0)
+    {
+      reelMotor.set(-0.2);
+    }
+    else if(!bToggleState)
     {
       reelMotor.stopMotor();
     }
@@ -195,7 +204,7 @@ public class Robot extends TimedRobot {
     gyro.calibrate();
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
-    SmartDashboard.putNumber("Reel Revolutions", 12.0);
+    SmartDashboard.putNumber("Reel Revolutions", 8.0);
     m_chooser.setDefaultOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
     m_chooser.addOption("2 ball low shooter 1 (left)", kCustomAuto5);
     m_chooser.addOption("2 ball high shooter Ball 2 (middle)", kDefaultAuto);
@@ -222,6 +231,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("right bumper", "high shoot");
  */ ledStrip.set(getTeamColor());
     outMotor.enableVoltageCompensation(12.0);
+    reelMotor.enableVoltageCompensation(9.0);
   }
 
   /**
@@ -268,7 +278,7 @@ public class Robot extends TimedRobot {
     startTime = Timer.getFPGATimestamp(); // get the match start time
     mode = "Drive Forward";
     bToggleState = false;
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 12.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.0));
   }
 
   /** This function is called periodically during autonomous. */
@@ -825,7 +835,7 @@ public class Robot extends TimedRobot {
 
     if(xBox.getXButton() && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getYButton()))
     {
-      feedMotor.set(-feedSpeed);
+      feedMotor.set(-1.5 * feedSpeed);
       //SmartDashboard.putNumber("feedSpeed", -feedSpeed);
       inMotor.set(-inSpeed);
       //SmartDashboard.putNumber("inSpeed", -inSpeed);
@@ -890,7 +900,7 @@ public class Robot extends TimedRobot {
   {
     reelMotor.setIdleMode(IdleMode.kBrake);
     reelMotor.enableVoltageCompensation(6.0);
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 12.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.0));
     bToggleState = false;
   }
 
