@@ -104,7 +104,7 @@ public class Robot extends TimedRobot {
   //control variables
   private double inputScaling = 0.4;
   private int povState = -1;
-  private double oldSlew = 3;
+  private double oldSlew = 3.0;
   //private int speedIndex = 0;
   private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
@@ -217,7 +217,7 @@ public class Robot extends TimedRobot {
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
     SmartDashboard.putNumber("Reel Revolutions", 8.25);
-    SmartDashboard.putNumber("Slew Rate", 3);
+    SmartDashboard.putNumber("Slew Rate", 3.0);
     m_chooser.setDefaultOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
     m_chooser.addOption("2 ball low shooter 1 (left)", kCustomAuto5);
     m_chooser.addOption("2 ball high shooter Ball 2 (middle)", kDefaultAuto);
