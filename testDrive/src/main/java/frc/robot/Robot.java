@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
   private AnalogInput preFeedSensor = new AnalogInput(3);
 //   private AnalogInput distanceSensor = new AnalogInput(2);
   private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(3);
-  private double heading;
+  // private double heading;
   private Spark ledStrip = new Spark(0);
   private double green = 0.71;
   //private double teamColor;
@@ -104,6 +104,7 @@ public class Robot extends TimedRobot {
   //control variables
   private double inputScaling = 0.4;
   private int povState = -1;
+  private double oldSlew = 3;
   //private int speedIndex = 0;
   private boolean aToggleState = false, bToggleState = false;
   private double timePassed;
@@ -168,7 +169,7 @@ public class Robot extends TimedRobot {
 
   private void intakeReel()
   {
-    double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 8.0);
+    double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 8.25);
     double reelPosition = reelMotor.getEncoder().getPosition();
     if(reelCoast)
     {
@@ -215,7 +216,8 @@ public class Robot extends TimedRobot {
     gyro.calibrate();
     camera1 = CameraServer.startAutomaticCapture(0);
     camera2 = CameraServer.startAutomaticCapture(1);
-    SmartDashboard.putNumber("Reel Revolutions", 8.0);
+    SmartDashboard.putNumber("Reel Revolutions", 8.25);
+    SmartDashboard.putNumber("Slew Rate", 3);
     m_chooser.setDefaultOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
     m_chooser.addOption("2 ball low shooter 1 (left)", kCustomAuto5);
     m_chooser.addOption("2 ball high shooter Ball 2 (middle)", kDefaultAuto);
@@ -264,6 +266,12 @@ public class Robot extends TimedRobot {
     //SmartDashboard.putBoolean("Ballfinding", bToggleState);
     SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
     SmartDashboard.putNumber("Reel Motor Revs", reelMotor.getEncoder().getPosition());
+    if(SmartDashboard.getNumber("Slew Rate", 3) != oldSlew)
+    {
+      driveAccLimiter = new SlewRateLimiter(SmartDashboard.getNumber("Slew Rate", 3));
+      oldSlew = SmartDashboard.getNumber("Slew Rate", 3);
+      //MAKE SURE ONLY TO ADJUST VALUE WHEN STOPPED
+    }
   }
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -289,7 +297,7 @@ public class Robot extends TimedRobot {
     startTime = Timer.getFPGATimestamp(); // get the match start time
     mode = "Drive Forward";
     bToggleState = false;
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 9.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.25));
   }
 
   /** This function is called periodically during autonomous. */
@@ -722,7 +730,7 @@ public class Robot extends TimedRobot {
       }
       else if(povState == 0)
       {
-        inputScaling = 0.65;
+        inputScaling = 0.7;
       }
       else if(povState == 270)
       { 
@@ -913,7 +921,7 @@ public class Robot extends TimedRobot {
   {
     reelMotor.setIdleMode(IdleMode.kBrake);
     reelMotor.enableVoltageCompensation(6.0);
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 9.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.25));
     bToggleState = false;
   }
 
