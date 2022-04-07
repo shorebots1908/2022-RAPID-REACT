@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax feedMotor = new CANSparkMax(8, MotorType.kBrushless);
   private CANSparkMax reelMotor = new CANSparkMax(6, MotorType.kBrushless);
   private boolean reelCoast = false;
-  private boolean startReleased = false:
+  private boolean startReleased = false;
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
@@ -177,7 +177,7 @@ public class Robot extends TimedRobot {
     else if(startReleased)
     {
     reelMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    reelMotor.getEncoder().setPosition(0)
+    reelMotor.getEncoder().setPosition(0);
     }
     else if(bToggleState && reelPosition < 0.75 * reelRevs)
     {
@@ -691,7 +691,7 @@ public class Robot extends TimedRobot {
       bToggleState = !bToggleState;
     }
     reelCoast = xBox.getStartButton();
-    startReleased = xBox.getStartButtonReleased()
+    startReleased = xBox.getStartButtonReleased();
     intakeReel();
     if(feederSensor.getValue() > 300 && preFeedSensor.getValue() > 500)
     {
