@@ -1,5 +1,20 @@
 <xml version="1.0">
 <dashboard>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.CameraServerViewer">
+		<location x="327" y="304"/>
+		<width>359</width>
+		<height>271</height>
+		<property name="Camera Choice" value=""/>
+	</static-widget>
+	<widget field="Speed of Drivetrain" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="172"/>
+	</widget>
+	<widget field="Reel Motor Revs" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="20"/>
+	</widget>
+	<widget field="Reel Revolutions" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="0"/>
+	</widget>
 	<widget field="Ball Sensor" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.ProgressBar">
 		<location x="-3" y="54"/>
 		<width>320</width>
@@ -11,19 +26,38 @@
 		<height>342</height>
 		<property name="Camera Choice" value="USB Camera 1"/>
 	</static-widget>
-	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.CameraServerViewer">
-		<location x="328" y="302"/>
-		<width>356</width>
-		<height>270</height>
-		<property name="Camera Choice" value=""/>
-	</static-widget>
 	<widget field="Auto choices" type="String Chooser" class="edu.wpi.first.smartdashboard.gui.elements.Chooser">
-		<location x="32" y="425"/>
+		<location x="45" y="247"/>
 	</widget>
 	<widget field="Gyro Values" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="935" y="22"/>
 	</widget>
 </dashboard>
 <live-window>
+	<widget field="Ungrouped" type="LW Subsystem" class="edu.wpi.first.smartdashboard.livewindow.elements.LWSubsystem">
+		<widget field="AnalogInput[3]" type="Table" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="0" y="0"/>
+			<height>0</height>
+			<width>0</width>
+		</widget>
+		<widget field="AnalogInput[3]" type="Table" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="0" y="0"/>
+			<height>0</height>
+			<width>0</width>
+		</widget>
+		<widget field="ADXRS450_Gyro[0]" type="Gyro" class="edu.wpi.first.smartdashboard.gui.elements.Compass">
+			<location x="6" y="15"/>
+			<height>150</height>
+			<width>250</width>
+		</widget>
+		<widget field="AnalogInput[2]" type="Analog Input" class="edu.wpi.first.smartdashboard.livewindow.elements.SingleNumberDisplay">
+			<location x="6" y="165"/>
+			<height>19</height>
+			<width>250</width>
+		</widget>
+		<location x="0" y="0"/>
+		<width>262</width>
+		<height>190</height>
+	</widget>
 </live-window>
 </xml>

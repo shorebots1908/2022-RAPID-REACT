@@ -83,6 +83,8 @@ public class Robot extends TimedRobot {
   private CANSparkMax outMotor = new CANSparkMax(9, MotorType.kBrushless);
   private CANSparkMax feedMotor = new CANSparkMax(8, MotorType.kBrushless);
   private CANSparkMax reelMotor = new CANSparkMax(6, MotorType.kBrushless);
+  private boolean reelCoast = false;
+  private boolean startReleased = false:
   private DifferentialDrive driveRobot;
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
@@ -168,7 +170,16 @@ public class Robot extends TimedRobot {
   {
     double reelRevs = SmartDashboard.getNumber("Reel Revolutions", 8.0);
     double reelPosition = reelMotor.getEncoder().getPosition();
-    if(bToggleState && reelPosition < 0.75 * reelRevs)
+    if(reelCoast)
+    {
+     reelMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    }
+    else if(startReleased)
+    {
+    reelMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    reelMotor.getEncoder().setPosition(0)
+    }
+    else if(bToggleState && reelPosition < 0.75 * reelRevs)
     {
       reelMotor.set(0.3);
     }
@@ -278,7 +289,7 @@ public class Robot extends TimedRobot {
     startTime = Timer.getFPGATimestamp(); // get the match start time
     mode = "Drive Forward";
     bToggleState = false;
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 9.0));
   }
 
   /** This function is called periodically during autonomous. */
@@ -679,6 +690,8 @@ public class Robot extends TimedRobot {
     {
       bToggleState = !bToggleState;
     }
+    reelCoast = xBox.getStartButton();
+    startReleased = xBox.getStartButtonReleased()
     intakeReel();
     if(feederSensor.getValue() > 300 && preFeedSensor.getValue() > 500)
     {
@@ -900,7 +913,7 @@ public class Robot extends TimedRobot {
   {
     reelMotor.setIdleMode(IdleMode.kBrake);
     reelMotor.enableVoltageCompensation(6.0);
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 8.0));
+    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 9.0));
     bToggleState = false;
   }
 
