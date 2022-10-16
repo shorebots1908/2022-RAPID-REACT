@@ -30,7 +30,6 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import javax.management.relation.Relation;
@@ -115,91 +114,23 @@ public class Robot extends TimedRobot {
   private String mode;
   private double reverseDelay;
   private double autoFeedTimeStart;
-
+  //private int backTime = 3;
+  //private boolean findBall = false, isBallFound = false;
+  //private double initialRange;
   //configuration variables
   private double inSpeed = -0.7;
+  //private double outSpeeds[] = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
   private double feedSpeed = 0.6;
   private double highSpeed = 0.9;
   private double lowSpeed = 0.45; 
-
-  private boolean m_LimelightHasValidTarget = false;
-  private double m_LimelightDriveCommand = 0.0;
-  private double m_LimelightSteerCommand = 0.0;
-
   //Custom Functions
-
-  public void Update_Limelight_Tracking()
+  /*
+  private double ultraInches(double _raw)
   {
-        // These numbers must be tuned for your Robot!  Be careful!
-        final double STEER_K = 0.06;                    // how hard to turn toward the target
-        final double DRIVE_K = 0.06;                    // how hard to drive fwd toward the target
-        //final double DESIRED_TARGET_AREA = 13.0;        // Area of the target when the robot reaches the wall
-        final double MAX_DRIVE = 0.7;                   // Simple speed limit so we don't drive too fast
-        final double MIN_DRIVE = 0.35;                  //minimum drive speed so things don't peter out or take too long.
-        final double MIN_STEER = 0.3;
-        final double X_OFFSET_TARGET = 2;        //target target X deviation
-        final double Y_OFFSET_TARGET = 2;         //target target Y deviation
-        final double STEER_X_TARGET = X_OFFSET_TARGET * STEER_K;
-        final double DRIVE_Y_TARGET = Y_OFFSET_TARGET * DRIVE_K;
-
-
-        double tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tv").getDouble(0);
-        double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
-        double ty = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0);
-        double ta = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0);
-
-        if (tv < 1.0)
-        {
-          m_LimelightHasValidTarget = false;
-          m_LimelightDriveCommand = 0.0;
-          m_LimelightSteerCommand = 0.0;
-          return;
-        }
-
-        m_LimelightHasValidTarget = true;
-
-        // Start with proportional steering
-        double steer_cmd = tx * STEER_K;
-        if((steer_cmd < STEER_X_TARGET) && (steer_cmd > -STEER_X_TARGET))
-        {
-          steer_cmd = 0;
-        }
-        else if((steer_cmd < MIN_STEER) && (steer_cmd > -MIN_STEER))
-        {
-          //if steer_cmd is > 0, make it 0.3, otherwise make it -0.3
-          steer_cmd = steer_cmd > 0 ? MIN_STEER : -MIN_STEER;
-        }
-
-        m_LimelightSteerCommand = steer_cmd;
-
-        // try to drive forward until the target area reaches our desired area
-        //double drive_cmd = (DESIRED_TARGET_AREA - ta) * DRIVE_K;
-        
-        // try to drive forward until the target is high enough on the view
-        double drive_cmd = -ty * DRIVE_K;
-        if((drive_cmd < DRIVE_Y_TARGET) && (drive_cmd > -DRIVE_Y_TARGET))
-        {
-          drive_cmd = 0;
-        }
-        else if((drive_cmd < MIN_DRIVE) && (drive_cmd > -MIN_DRIVE))
-        {
-          //if drive_cmd is > 0, make it 0.3, otherwise make it -0.3
-          drive_cmd = drive_cmd > 0 ? MIN_DRIVE : -MIN_DRIVE;
-        }
-
-        // don't let the robot drive too fast into the goal
-        if ((drive_cmd > MAX_DRIVE) || drive_cmd < -MAX_DRIVE)
-        {
-          drive_cmd = drive_cmd > 0 ? MAX_DRIVE : -MAX_DRIVE;
-        }
-        m_LimelightDriveCommand = drive_cmd;
-
-        SmartDashboard.putNumber("LimelightX", tx);
-        SmartDashboard.putNumber("LimelightY", ty);
-        SmartDashboard.putNumber("LimelightArea", ta);
-        SmartDashboard.putNumber("LimelightV", tv);
-
+    double voltage_scale_factor = 5/RobotController.getVoltage5V();
+    return _raw * voltage_scale_factor * 0.0492;
   }
+  */
 
   public double getTeamColor(){    
     isRedAlliance = FMS.getEntry("IsRedAlliance").getBoolean(false);
@@ -299,15 +230,25 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("High Auto", kCustomAuto2);
     m_chooser.addOption("Low Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+    //motorR2.setInverted(true);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    ledStrip.set(getTeamColor());
+    /*SmartDashboard.putString("a Button", "run intake motor");
+    SmartDashboard.putString("x Button", "reverse intake motor");
+    SmartDashboard.putString("y Button", "run feed motor");
+    //SmartDashboard.putString("bButton", "emergerencyBrake");
+    SmartDashboard.putString("up d-pad", "full speed");
+    SmartDashboard.putString("down d-pad", "slow speed");
+    SmartDashboard.putString("left d-pad", "middle speed");
+    SmartDashboard.putString("left trigger", "brake throttle");
+    SmartDashboard.putString("left bumper", "low shoot");
+    SmartDashboard.putString("right bumper", "high shoot");
+ */ ledStrip.set(getTeamColor());
     outMotor.enableVoltageCompensation(12.0);
     reelMotor.enableVoltageCompensation(9.0);
-
   }
 
   /**
@@ -321,7 +262,12 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() 
   {
     SmartDashboard.putNumber("Ball Sensor", feederSensor.getValue());
+    //SmartDashboard.putNumber("distanceSensorValue", ultraInches(distanceSensor.getValue()));
+    //SmartDashboard.putNumber("Throwing Speed", outSpeeds[speedIndex]);
+    //SmartDashboard.putNumber("preSensor", preFeedSensor.getValue());
+    //SmartDashboard.putNumber("IR Input", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
+    //SmartDashboard.putBoolean("Ballfinding", bToggleState);
     SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
     SmartDashboard.putNumber("Reel Motor Revs", reelMotor.getEncoder().getPosition());
     if(SmartDashboard.getNumber("Slew Rate", 3) != oldSlew)
@@ -330,7 +276,6 @@ public class Robot extends TimedRobot {
       oldSlew = SmartDashboard.getNumber("Slew Rate", 3);
       //MAKE SURE ONLY TO ADJUST VALUE WHEN STOPPED
     }
-
   }
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -753,10 +698,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() 
   {
-    Update_Limelight_Tracking();
-
-    boolean auto = xBox.getRightTriggerAxis() > 0.2;
-
     if(xBox.getBButtonPressed())
     {
       bToggleState = !bToggleState;
@@ -773,23 +714,12 @@ public class Robot extends TimedRobot {
       ledStrip.set(getTeamColor());
     }
 
-    //double motorSpeed = xBox.getLeftY() * inputScaling;
+    double motorSpeed = xBox.getLeftY() * inputScaling;
     //SmartDashboard.putNumber("motorSpeed", motorSpeed);
     SmartDashboard.putNumber("Speed of Drivetrain", inputScaling);
     if(xBox.getLeftTriggerAxis() >= 0.99)
     {
       driveRobot.stopMotor();
-    }
-    else if(auto)
-    {
-      if (m_LimelightHasValidTarget)
-      {
-        driveRobot.arcadeDrive(m_LimelightSteerCommand,m_LimelightDriveCommand);
-      }
-      else
-      {
-        driveRobot.arcadeDrive(0.0,0.0);
-      }
     }
     else
     {
@@ -951,7 +881,6 @@ public class Robot extends TimedRobot {
     {
       reverseDelay = Timer.getFPGATimestamp();
     }
-    
     
     // double voltage_scale_factor = 5/RobotController.getVoltage5V();
     // double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
