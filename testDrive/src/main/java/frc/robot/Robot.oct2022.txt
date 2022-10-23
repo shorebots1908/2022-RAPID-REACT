@@ -3,11 +3,21 @@
 // the WPILib BSD license file in the root directory of this project.
 
 /* TODOs
-!TURN FOR TARGET ACQUISITION
-!TOGGLE DIRECTION OF TURN FOR TARGETING
-*SPIN UP AND SHOOT WHEN IN RANGE
-*USE ENCODERS TO DETERMINE WHEN TO FEED?
-*PUT CONFIGURATION FOR LIMELIGHT SEEKING ON SMART DASHBOARD
+* Add reverse to feed mechanism -
+* Add reverse to intake mechanism -
+* Implement sensor stop to feed mechanism
+* Implement sensor stop to intake mechanism
+* Ultrasonic for shooting range
+* Color sensor output to LED lightstrips
+* change input scaling to 1, 0.7, 0.3 on up, right,down d-pad. -
+* LED flash when ball grabbed
+* LED signal when balls full
+* LED team colors
+* Add a timer for reverse and sensor activation
+* Gyroscope Code
+* Auto code
+* LED signal when having one ball - flash green once 
+* LED Signal when having one ball - constant flashing green
 */
 
 package frc.robot;
@@ -64,9 +74,6 @@ public class Robot extends TimedRobot {
   private Joystick joystick = new Joystick(0);
   //private final SendableChooser<String> reelChooser = new SendableChooser<>();
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private final SendableChooser<String> limelightchooser = new SendableChooser<>();
-  private final String left = "left";
-  private final String right = "right";
   //private Joystick stickL = new Joystick(0);
   //private Joystick stickR = new Joystick(1);
   private CANSparkMax motorL1 = new CANSparkMax(10, MotorType.kBrushless);
@@ -118,20 +125,18 @@ public class Robot extends TimedRobot {
   private boolean m_LimelightHasValidTarget = false;
   private double m_LimelightDriveCommand = 0.0;
   private double m_LimelightSteerCommand = 0.0;
-  private String ll_TurnDirection;
 
   //Custom Functions
 
   public void Update_Limelight_Tracking()
   {
         // These numbers must be tuned for your Robot!  Be careful!
-        final double STEER_K = 0.045;                    // how hard to turn toward the target
+        final double STEER_K = 0.06;                    // how hard to turn toward the target
         final double DRIVE_K = 0.06;                    // how hard to drive fwd toward the target
         //final double DESIRED_TARGET_AREA = 13.0;        // Area of the target when the robot reaches the wall
         final double MAX_DRIVE = 0.7;                   // Simple speed limit so we don't drive too fast
         final double MIN_DRIVE = 0.35;                  //minimum drive speed so things don't peter out or take too long.
         final double MIN_STEER = 0.3;
-        final double MAX_STEER = 0.65;
         final double X_OFFSET_TARGET = 2;        //target target X deviation
         final double Y_OFFSET_TARGET = 2;         //target target Y deviation
         final double STEER_X_TARGET = X_OFFSET_TARGET * STEER_K;
@@ -163,10 +168,6 @@ public class Robot extends TimedRobot {
         {
           //if steer_cmd is > 0, make it 0.3, otherwise make it -0.3
           steer_cmd = steer_cmd > 0 ? MIN_STEER : -MIN_STEER;
-        }
-        else if((steer_cmd > MAX_STEER) || (steer_cmd < -MAX_STEER))
-        {
-          steer_cmd = steer_cmd > 0 ? MAX_STEER : -MAX_STEER;
         }
 
         m_LimelightSteerCommand = steer_cmd;
@@ -297,10 +298,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("2 ball high shooter Ball 3 (wall)", kCustomAuto3);
     m_chooser.addOption("High Auto", kCustomAuto2);
     m_chooser.addOption("Low Auto", kCustomAuto);
-    limelightchooser.setDefaultOption(left, left);
-    limelightchooser.addOption(right, right);
     SmartDashboard.putData("Auto choices", m_chooser);
-    SmartDashboard.putData("Targeting Turn Direction", limelightchooser);
     leftGroup = new MotorControllerGroup(motorL1,motorL2);
     rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
@@ -322,7 +320,6 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() 
   {
-    SmartDashboard.updateValues();
     SmartDashboard.putNumber("Ball Sensor", feederSensor.getValue());
     timePassed = Timer.getFPGATimestamp() - startTime;
     SmartDashboard.putNumber("Gyro Values", gyro.getAngle());
@@ -756,7 +753,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() 
   {
-    ll_TurnDirection = limelightchooser.getSelected();
     Update_Limelight_Tracking();
 
     boolean auto = xBox.getRightTriggerAxis() > 0.2;
@@ -792,7 +788,7 @@ public class Robot extends TimedRobot {
       }
       else
       {
-        driveRobot.arcadeDrive((ll_TurnDirection == "left" ? -0.5 : 0.5),0.0);
+        driveRobot.arcadeDrive(0.0,0.0);
       }
     }
     else
