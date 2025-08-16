@@ -245,7 +245,6 @@ public class Robot extends TimedRobot {
     double reelPosition = reelMotor.getEncoder().getPosition();
     if(reelCoast)
     {
-     // reelMotor.setIdleMode(IdleMode.kCoast);
      reelMotor.configure(
         new SparkMaxConfig().idleMode(IdleMode.kCoast),
         ResetMode.kResetSafeParameters,
@@ -326,6 +325,7 @@ public class Robot extends TimedRobot {
     // driveRobot = new DifferentialDrive(leftGroup,rightGroup);
     driveRobot = new DifferentialDrive(motorL1::set,motorR2::set);
     ledStrip.set(getTeamColor());
+    // Removed the voltage compensation stuff for 2025 code rewrite for Ag Fair
     //outMotor.enableVoltageCompensation(12.0);
     //reelMotor.enableVoltageCompensation(9.0);
 
@@ -368,9 +368,6 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     gyro.reset();
     // motorL1.setIdleMode(IdleMode.kBrake);
-    // motorL2.setIdleMode(IdleMode.kBrake);
-    // motorR1.setIdleMode(IdleMode.kBrake);
-    // motorR2.setIdleMode(IdleMode.kBrake);
     motorL1.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
@@ -387,13 +384,12 @@ public class Robot extends TimedRobot {
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
       PersistMode.kPersistParameters);
-    // reelMotor.setIdleMode(IdleMode.kBrake);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
       PersistMode.kPersistParameters);
     m_autoSelected = m_chooser.getSelected();
-    //m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
+   
     System.out.println("Auto selected: " + m_autoSelected);
     startTime = Timer.getFPGATimestamp(); // get the match start time
     mode = "Drive Forward";
@@ -783,10 +779,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     gyro.reset();
-    // motorL1.setIdleMode(IdleMode.kBrake);
-    // motorL2.setIdleMode(IdleMode.kBrake);
-    // motorR1.setIdleMode(IdleMode.kBrake);
-    // motorR2.setIdleMode(IdleMode.kBrake);
+    // Set motors to brake mode
     motorL1.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
@@ -803,7 +796,6 @@ public class Robot extends TimedRobot {
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
       PersistMode.kPersistParameters);
-    // reelMotor.setIdleMode(IdleMode.kBrake);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
@@ -880,29 +872,6 @@ public class Robot extends TimedRobot {
         
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
-    //Toggle ball finding mode
-    /*
-    if(xBox.getBButtonPressed())
-    {
-      bToggleState = !bToggleState;
-      initialRange = ultraInches(distanceSensor.getValue());
-    }
-
-    
-    if(bToggleState)
-    {
-      if(ultraInches(distanceSensor.getValue()) <= initialRange -3)
-      {
-        bToggleState = false;
-        driveRobot.arcadeDrive(0, 0);
-      }
-      else
-      {
-        driveRobot.arcadeDrive(-0.2, 0);
-      }
-    }
-    */
-
     //Intake motor intake toggle
     if(xBox.getAButton())
     {
@@ -928,7 +897,6 @@ public class Robot extends TimedRobot {
     }
     else if(!xBox.getXButton())
     {
-      //inMotor.stopMotor();
       inMotor.stopMotor();
       //SmartDashboard.putString("Abutton", "not pushed");
     }
@@ -1041,10 +1009,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit()
   {
-    // motorL1.setIdleMode(IdleMode.kCoast);
-    // motorL2.setIdleMode(IdleMode.kCoast;
-    // motorR1.setIdleMode(IdleMode.kCoast);
-    // motorR2.setIdleMode(IdleMode.kCoast);
+    // Set the motors to coast for easy robot manipulaton
     motorL1.configure(
       new SparkMaxConfig().idleMode(IdleMode.kCoast),
       ResetMode.kResetSafeParameters,
@@ -1061,7 +1026,6 @@ public class Robot extends TimedRobot {
       new SparkMaxConfig().idleMode(IdleMode.kCoast),
       ResetMode.kResetSafeParameters,
       PersistMode.kPersistParameters);
-    // reelMotor.setIdleMode(IdleMode.kCoast);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kCoast),
       ResetMode.kResetSafeParameters,
@@ -1076,24 +1040,13 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() 
   {
-    reelMotor.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
- //   reelMotor.enableVoltageCompensation(6.0); note: MZ removed this from 2025 code
-    reelMotor.getEncoder().setPosition(SmartDashboard.getNumber("Reel Revolutions", 9));
-    bToggleState = false;
+
   }
 
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic()
   {
-    SmartDashboard.putNumber("Reel Motor Revs", reelMotor.getEncoder().getPosition());
-    if(xBox.getBButtonPressed())
-    {
-      bToggleState = !bToggleState;
-    }
-    intakeReel();
+
   }
 }
