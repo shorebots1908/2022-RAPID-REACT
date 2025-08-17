@@ -41,20 +41,10 @@ import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.AnalogInput;
 // import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
-//import edu.wpi.first.wpilibj.Ultrasonic;
-import edu.wpi.first.cameraserver.CameraServer;
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project.
- */
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+
 public class Robot extends TimedRobot {
   private ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-  private UsbCamera camera1;
-  private UsbCamera camera2;
   private double startTime;
   private static final String kDefaultAuto = "2 ball high shooter #2 (middle)";
   private static final String kCustomAuto = "Low goal shooter";
@@ -65,7 +55,7 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto6 = "2 ball low shooter #2 (middle)";
   private String m_autoSelected;
   private XboxController xBox = new XboxController(0);
-  private Joystick joystick = new Joystick(0);
+  private Joystick joystick = new Joystick(1);
   //private final SendableChooser<String> reelChooser = new SendableChooser<>();
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private final SendableChooser<String> limelightchooser = new SendableChooser<>();
@@ -229,11 +219,11 @@ public class Robot extends TimedRobot {
       feedFlag = true;
     }
 
-    if(feedFlag && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
+    if(feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
     {
       feedMotor.set(0.3);
     } 
-    else if(!feedFlag && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton() || xBox.getYButton()))
+    else if(!feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
     {
       feedMotor.stopMotor();
     }
@@ -293,12 +283,6 @@ public class Robot extends TimedRobot {
   public void robotInit() 
   {
     gyro.calibrate();
-    camera1 = CameraServer.startAutomaticCapture(0);
-    camera2 = CameraServer.startAutomaticCapture(1);
-    camera1.setResolution(40,30);
-    camera2.setResolution(40,30);
-    camera1.setFPS(15);
-    camera2.setFPS(15);
     SmartDashboard.putNumber("Reel Revolutions", 9);
     SmartDashboard.putNumber("Slew Rate", 3.0);
     m_chooser.setDefaultOption("2 ball high shooter Ball 1 (left)", kCustomAuto4);
@@ -315,9 +299,9 @@ public class Robot extends TimedRobot {
     // new motorgroups as leader/follower since MotorControllerGroup was depricated 
     SparkBaseConfig l2Config = new SparkMaxConfig().follow(motorL1, /*invert*/ false);
     SparkBaseConfig r2Config = new SparkMaxConfig().follow(motorR1, /*invert*/ false);
-
     motorL2.configure(l2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     motorR2.configure(r2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    // TODO: Need to fix driving this does not work
     // leftGroup = new MotorControllerGroup(motorL1,motorL2); 
     //rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
@@ -400,6 +384,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    //TODO: Remove the auto stuff for the Ag Fair code so we don't accidentally harm anyone
     autoFeedRoutine();
     intakeReel();
     switch (m_autoSelected)
@@ -873,7 +858,7 @@ public class Robot extends TimedRobot {
     driveRobot.setMaxOutput(1.0 - xBox.getLeftTriggerAxis());
 
     //Intake motor intake toggle
-    if(xBox.getAButton())
+    if(xBox.getAButton() || joystick.getRawButton(3))
     {
       aToggleState = true;
     }
@@ -889,7 +874,7 @@ public class Robot extends TimedRobot {
     }
 
     //Intake motor speed set
-    if(aToggleState)
+    if(aToggleState || joystick.getRawButton(3))
     {
       //inMotor.set(0.3);
       inMotor.set(inSpeed);
@@ -908,18 +893,19 @@ public class Robot extends TimedRobot {
       speedIndex++;
       speedIndex = speedIndex % outSpeeds.length;
     }*/
-    if(xBox.getLeftBumperPressed())
+    if(xBox.getLeftBumperButtonPressed() || joystick.getRawButtonPressed(1))
     {
       lowFeedStart = Timer.getFPGATimestamp();
     }
 
-    if(xBox.getRightBumperPressed())
+    if(xBox.getRightBumperButtonPressed() || joystick.getRawButton(2))
     {
       highFeedStart = Timer.getFPGATimestamp();
     }
     
-    if(xBox.getLeftBumper() || joystick.getRawButton(1))
+    if(xBox.getLeftBumperButton() || joystick.getRawButton(1))
     {
+
       outMotor.set(lowSpeed);
       if(Timer.getFPGATimestamp() - lowFeedStart > 0.5)
       {
@@ -930,7 +916,7 @@ public class Robot extends TimedRobot {
         feedMotor.stopMotor();
       }
     }
-    else if(xBox.getRightBumper())
+    else if(xBox.getRightBumperButton() || joystick.getRawButton(2))
     {
       outMotor.set(highSpeed);
       if(Timer.getFPGATimestamp() - highFeedStart > 1)
@@ -952,13 +938,13 @@ public class Robot extends TimedRobot {
       feedMotor.set(feedSpeed);
       //SmartDashboard.putNumber("feedSpeed", feedSpeed);
     }
-    else if(!(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getXButton()))
+    else if(!(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton()))
     {
       feedMotor.stopMotor();
       //SmartDashboard.putNumber("feedSpeed", 0);
     }
 
-    if(xBox.getXButton() && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getYButton()))
+    if((xBox.getXButton() || joystick.getRawButton(4)) && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()))
     {
       feedMotor.set(-1.5 * feedSpeed);
       //SmartDashboard.putNumber("feedSpeed", -feedSpeed);
@@ -966,7 +952,7 @@ public class Robot extends TimedRobot {
       //SmartDashboard.putNumber("inSpeed", -inSpeed);
       aToggleState = false;
     }
-    else if(!xBox.getLeftBumper() && !(xBox.getLeftBumper() || xBox.getRightBumper() || xBox.getYButton()))
+    else if(!xBox.getLeftBumperButton() && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()))
     {
       feedMotor.stopMotor();
       //SmartDashboard.putNumber("feedSpeed", 0); 
@@ -982,27 +968,9 @@ public class Robot extends TimedRobot {
       reverseDelay = Timer.getFPGATimestamp();
     }
     
-    
-    // double voltage_scale_factor = 5/RobotController.getVoltage5V();
-    // double currentDistanceInches = distanceSensor.getValue() * voltage_scale_factor * 0.0492;
-    //SmartDashboard.putNumber("Distance Sensor Inches", currentDistanceInches);
-    
     //If a ball is detected at the upper sensor or the lower sensor is clear and the timer was running for more than 3 seconds
     autoFeedRoutine();
 
-      //if(feederSensor.getValue()>= 300)
-    /*if(!(feederSensor.getValue() >=300) && !(xBox.getYButton()) && !(xBox.getXButton() && !(xBox.getRightBumper())))
-    {
-      if(preFeedSensor.getValue() >= 800)
-      {
-        feedMotor.set(0.3);
-      }
-      else if((feederSensor.getValue() >=300))
-      {
-        feedMotor.stopMotor();
-        
-      }
-    }*/
   }
 
   /** This function is called once when the robot is disabled. */
