@@ -42,6 +42,9 @@ import edu.wpi.first.wpilibj.AnalogInput;
 // import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
 
 public class Robot extends TimedRobot {
   private ADXRS450_Gyro gyro = new ADXRS450_Gyro();
@@ -63,10 +66,11 @@ public class Robot extends TimedRobot {
   private final String right = "right";
   //private Joystick stickL = new Joystick(0);
   //private Joystick stickR = new Joystick(1);
-  private SparkMax motorL1 = new SparkMax(10, MotorType.kBrushless);
-  private SparkMax motorL2 = new SparkMax(11, MotorType.kBrushless);
-  private SparkMax motorR1 = new SparkMax(12, MotorType.kBrushless);
-  private SparkMax motorR2 = new SparkMax(13, MotorType.kBrushless);
+  private WPI_TalonSRX motorL1 = new WPI_TalonSRX(1);
+  //private SparkMax motorL1 = new SparkMax(10, MotorType.kBrushless);
+  //private SparkMax motorL2 = new SparkMax(11, MotorType.kBrushless);
+  private WPI_TalonSRX motorR1 = new WPI_TalonSRX(2);
+  //private SparkMax motorR2 = new SparkMax(13, MotorType.kBrushless);
   private SparkMax inMotor = new SparkMax(7, MotorType.kBrushless);
   private SparkMax outMotor = new SparkMax(9, MotorType.kBrushless);
   private SparkMax feedMotor = new SparkMax(8, MotorType.kBrushless);
@@ -297,17 +301,17 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto choices", m_chooser);
     SmartDashboard.putData("Targeting Turn Direction", limelightchooser);
     // new motorgroups as leader/follower since MotorControllerGroup was depricated 
-    SparkBaseConfig l2Config = new SparkMaxConfig().follow(motorL1, /*invert*/ false);
-    SparkBaseConfig r2Config = new SparkMaxConfig().follow(motorR1, /*invert*/ false);
-    motorL2.configure(l2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    motorR2.configure(r2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    // TODO: Need to fix driving this does not work
+    //SparkBaseConfig l2Config = new SparkMaxConfig().follow(motorL1, /*invert*/ false);
+    //SparkBaseConfig r2Config = new SparkMaxConfig().follow(motorR1, /*invert*/ false);
+    //motorL2.configure(l2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    //motorR2.configure(r2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
     // leftGroup = new MotorControllerGroup(motorL1,motorL2); 
     //rightGroup = new MotorControllerGroup(motorR1,motorR2);
     //leftGroup.setInverted(true);
     //rightGroup.setInverted(true);
     // driveRobot = new DifferentialDrive(leftGroup,rightGroup);
-    driveRobot = new DifferentialDrive(motorL1::set,motorR2::set);
+    driveRobot = new DifferentialDrive(motorL1::set,motorR1::set);
     ledStrip.set(getTeamColor());
     // Removed the voltage compensation stuff for 2025 code rewrite for Ag Fair
     //outMotor.enableVoltageCompensation(12.0);
@@ -352,22 +356,22 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     gyro.reset();
     // motorL1.setIdleMode(IdleMode.kBrake);
-    motorL1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorL2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
+   //motorL1.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorL2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+     // ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+   //motorR1.configure(
+   //   new SparkMaxConfig().idleMode(IdleMode.kBrake),
+   //   ResetMode.kResetSafeParameters,
+   //   PersistMode.kPersistParameters);
+    //motorR2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
@@ -765,22 +769,22 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     gyro.reset();
     // Set motors to brake mode
-    motorL1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorL2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kBrake),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
+   // motorL1.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorL2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+   // motorR1.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorR2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kBrake),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kBrake),
       ResetMode.kResetSafeParameters,
@@ -978,22 +982,22 @@ public class Robot extends TimedRobot {
   public void disabledInit()
   {
     // Set the motors to coast for easy robot manipulaton
-    motorL1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kCoast),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorL2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kCoast),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR1.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kCoast),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
-    motorR2.configure(
-      new SparkMaxConfig().idleMode(IdleMode.kCoast),
-      ResetMode.kResetSafeParameters,
-      PersistMode.kPersistParameters);
+    //motorL1.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kCoast),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorL2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kCoast),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorR1.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kCoast),
+     // ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
+    //motorR2.configure(
+    //  new SparkMaxConfig().idleMode(IdleMode.kCoast),
+    //  ResetMode.kResetSafeParameters,
+    //  PersistMode.kPersistParameters);
     reelMotor.configure(
       new SparkMaxConfig().idleMode(IdleMode.kCoast),
       ResetMode.kResetSafeParameters,
