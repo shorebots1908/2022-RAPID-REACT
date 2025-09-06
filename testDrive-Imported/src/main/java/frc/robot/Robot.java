@@ -24,10 +24,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 // import javax.management.relation.Relation;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.PersistMode;
 // import com.revrobotics.RelativeEncoder;
 //import com.revrobotics.spark.config.SparkBaseConfig;
 //import com.revrobotics.spark.config.SparkMaxConfig;
-//import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 //import com.revrobotics.spark.SparkBase.PersistMode;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -45,6 +48,7 @@ public class Robot extends TimedRobot {
   private WPI_TalonSRX motorL1 = new WPI_TalonSRX(1);
   private WPI_TalonSRX motorR1 = new WPI_TalonSRX(2);
   private SparkMax outMotor = new SparkMax(9, MotorType.kBrushless);
+  private SparkMax outMotor2 = new SparkMax(10, MotorType.kBrushless);
   private DifferentialDrive driveRobot;
   private SlewRateLimiter driveAccLimiter = new SlewRateLimiter(3);
   private Spark trigger = new Spark(1);
@@ -59,7 +63,7 @@ public class Robot extends TimedRobot {
 
   //configuration variables
   private double feedSpeed = 0.5;
-  private double highSpeed = 1.0;
+  private double highSpeed = 0.25;
 
   @Override
   public void robotInit() 
@@ -67,6 +71,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Slew Rate", 3.0);
     SmartDashboard.putData("Auto choices", m_chooser);
     driveRobot = new DifferentialDrive(motorL1::set,motorR1::set);
+    SparkBaseConfig outMotor2Config = new SparkMaxConfig().follow(outMotor, /*invert*/ false);
+    outMotor2.configure(outMotor2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
   }
 
