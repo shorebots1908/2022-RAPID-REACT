@@ -56,14 +56,14 @@ public class Robot extends TimedRobot {
  
   //auto variable programs
   //control variables
-  private double inputScaling = 0.4;
+  private double inputScaling = 0.6;
   private int povState = -1;
   private double oldSlew = 3.0;
 
 
   //configuration variables
-  private double feedSpeed = 0.5;
-  private double highSpeed = 0.25;
+  private double feedSpeed = -1;
+  private double highSpeed = -0.75;
 
   @Override
   public void robotInit() 
@@ -109,7 +109,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() 
   {
-      driveRobot.arcadeDrive((xBox.getLeftX() * inputScaling),driveAccLimiter.calculate(-xBox.getLeftY() * inputScaling));
+      driveRobot.arcadeDrive((-xBox.getLeftX() * inputScaling),driveAccLimiter.calculate(xBox.getLeftY() * inputScaling));
 
     // use the DPAD to determine robot speeds
     if (povState != xBox.getPOV()) {
