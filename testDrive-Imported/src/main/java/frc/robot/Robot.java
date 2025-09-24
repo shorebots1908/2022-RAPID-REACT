@@ -98,6 +98,10 @@ public class Robot extends TimedRobot {
   private double highSpeed = 0.9;
   private double lowSpeed = 0.45; 
 
+  private boolean highFeedActive = false;
+  private double highFeedStartTime = 0;
+  private double highFeedTimer = 0;
+
   //Custom Functions
 
   public double getTeamColor(){    
@@ -125,13 +129,16 @@ public class Robot extends TimedRobot {
       feedFlag = true;
     }
 
-    if(feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
+    //if(feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
+    if(feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton() || joystick.getRawButton(1) || joystick.getRawButton(2)))
     {
       feedMotor.set(0.3);
     } 
-    else if(!feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
+    //else if(!feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton()))
+    else if(!feedFlag && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || xBox.getYButton() || joystick.getRawButton(1) || joystick.getRawButton(2)))
     {
       feedMotor.stopMotor();
+      SmartDashboard.putString("Feed Debug", "AUTO FEED STOPPED");
     }
   }
 
@@ -204,6 +211,7 @@ public class Robot extends TimedRobot {
     driveRobot = new DifferentialDrive(motorL1::set,motorR1::set);
     ledStrip.set(getTeamColor());
 
+
   }
 
   @Override
@@ -241,6 +249,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     gyro.reset();
+    // Initialize timer variables
+    highFeedStart = Timer.getFPGATimestamp();
+    lowFeedStart = Timer.getFPGATimestamp();
+    highFeedActive = false;
     // Set motors to brake mode
     motorL1.configure(
       new SparkMaxConfig().idleMode(IdleMode.kCoast),
@@ -345,9 +357,18 @@ public class Robot extends TimedRobot {
       lowFeedStart = Timer.getFPGATimestamp();
     }
 
-    if(xBox.getRightBumperButtonPressed() || joystick.getRawButton(2))
+    if(xBox.getRightBumperButtonPressed() || joystick.getRawButtonPressed(2))
     {
-      highFeedStart = Timer.getFPGATimestamp();
+      // highFeedStart = Timer.getFPGATimestamp();
+      highFeedActive = true;
+      highFeedStartTime = Timer.getFPGATimestamp();
+      SmartDashboard.putString("High Feed", "Started");
+    }
+    // new
+    if(xBox.getRightBumperButtonReleased() || joystick.getRawButtonReleased(2))
+    {
+        highFeedActive = false;
+        SmartDashboard.putString("High Feed", "Stopped");
     }
     
     if(xBox.getLeftBumperButton() || joystick.getRawButton(1))
@@ -363,32 +384,33 @@ public class Robot extends TimedRobot {
         feedMotor.stopMotor();
       }
     }
-    else if(xBox.getRightBumperButton() || joystick.getRawButton(2))
+    if(highFeedActive && (xBox.getRightBumperButton() || joystick.getRawButton(2)))
     {
-      outMotor.set(highSpeed);
-      if(Timer.getFPGATimestamp() - highFeedStart > 1)
-      {
-        feedMotor.set(feedSpeed);
-      }
-      else if(!xBox.getXButton() && !xBox.getYButton())
-      {
-        feedMotor.stopMotor();
-      }
+        outMotor.set(highSpeed);
+        double elapsed = Timer.getFPGATimestamp() - highFeedStartTime;
+        SmartDashboard.putNumber("High Feed Elapsed", elapsed);
+        SmartDashboard.putString("Feed Debug", "HIGH FEED SET: " + feedSpeed);
+        
+        if(elapsed > 1.0)
+        {
+            feedMotor.set(feedSpeed);
+            SmartDashboard.putString("Feed Motor", "RUNNING");
+        }
     }
-    else
+    else if(!highFeedActive)
     {
-      outMotor.stopMotor();
+        outMotor.stopMotor();
     }
     
     if(xBox.getYButton())
     {
       feedMotor.set(feedSpeed);
-      //SmartDashboard.putNumber("feedSpeed", feedSpeed);
+      SmartDashboard.putString("Feed Debug", "Y BUTTON SET: " + feedSpeed);
     }
-    else if(!(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton()))
+    else if(!(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getXButton() || joystick.getRawButton(2)))
     {
       feedMotor.stopMotor();
-      //SmartDashboard.putNumber("feedSpeed", 0);
+      SmartDashboard.putString("Feed Debug", "Y SECTION STOPPED");
     }
 
     if((xBox.getXButton() || joystick.getRawButton(4)) && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()))
@@ -399,9 +421,11 @@ public class Robot extends TimedRobot {
       //SmartDashboard.putNumber("inSpeed", -inSpeed);
       aToggleState = false;
     }
-    else if(!xBox.getLeftBumperButton() && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()))
+    //else if(!xBox.getLeftBumperButton() && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()))
+    else if(!xBox.getLeftBumperButton() && !(xBox.getLeftBumperButton() || xBox.getRightBumperButton() || xBox.getYButton()) && !joystick.getRawButton(2))
     {
       feedMotor.stopMotor();
+      SmartDashboard.putString("Feed Debug", "ELSE STOPPED");
       //SmartDashboard.putNumber("feedSpeed", 0); 
       if(!aToggleState)
       {
